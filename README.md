@@ -19,7 +19,7 @@ Luego abre <http://localhost:3540>
 En `index.html`, dentro de `const CONFIG`:
 
 ```js
-whatsapp: '529581234567',   // ← placeholder
+whatsapp: '529541494680',   // ← número real de Robert
 ```
 
 Formato internacional, sin `+`, sin espacios, sin guiones.
