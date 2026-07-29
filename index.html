@@ -53,13 +53,19 @@ button,input,select,textarea{font:inherit;color:inherit}
 a{color:inherit;text-decoration:none}
 ::selection{background:var(--hot);color:var(--bone)}
 
-/* grano */
+/* grano
+   OJO: iba con inset:-50% + z-index:9999 + animacion por transform. Eso lo hacia
+   sobresalir POR ENCIMA del viewport y quedar encima del header. Safari iOS rellena el
+   area de la barra de estado con el elemento pegado arriba: agarraba esta capa
+   semitransparente y por debajo se veia la pagina scrolleando = "se ve parte de la
+   pagina arriba del menu". Ahora: inset:0 (no sobresale), z-index por debajo del header
+   y la animacion va por background-position, que no necesita margen extra. */
 body::after{
-  content:"";position:fixed;inset:-50%;z-index:9999;pointer-events:none;opacity:.045;
+  content:"";position:fixed;inset:0;z-index:290;pointer-events:none;opacity:.045;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
   animation:grain 1.1s steps(5) infinite;
 }
-@keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-4%,3%)}50%{transform:translate(3%,-4%)}75%{transform:translate(-3%,-2%)}100%{transform:translate(0,0)}}
+@keyframes grain{0%{background-position:0 0}25%{background-position:-7px 5px}50%{background-position:5px -7px}75%{background-position:-5px -4px}100%{background-position:0 0}}
 
 .wrap{max-width:var(--maxw);margin:0 auto;padding-inline:var(--pad)}
 .mono{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase}
