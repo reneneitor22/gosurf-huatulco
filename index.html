@@ -72,6 +72,7 @@ body::after{
 /* ---------- NAV ---------- */
 header.nav{
   position:fixed;top:0;left:0;right:0;z-index:300;
+  transform:translateZ(0);-webkit-transform:translateZ(0);will-change:transform;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
   padding:16px var(--pad);border-bottom:1px solid transparent;
   transition:background .45s var(--ease),border-color .45s,padding .4s;
