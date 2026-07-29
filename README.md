@@ -19,11 +19,12 @@ Luego abre <http://localhost:3540>
 En `index.html`, dentro de `const CONFIG`:
 
 ```js
-whatsapp: '5219581234567',   // ← placeholder
+whatsapp: '529581234567',   // ← placeholder
 ```
 
 Formato internacional, sin `+`, sin espacios, sin guiones.
-México: `52` + `1` + lada + número. Ej. `5219581234567`.
+México en WhatsApp: `52` + lada + número, **sin el `1` extra** (ese `1` es de llamadas
+telefónicas viejas; en links `wa.me` rompe el número). Ej. `529581234567`.
 
 Ese número recibe **todas** las reservas.
 
