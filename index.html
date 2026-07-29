@@ -36,7 +36,10 @@
   --ease:cubic-bezier(.19,1,.22,1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;overflow-x:clip;}
+/* NADA de overflow-x aquí: en el elemento raíz el overflow se propaga al viewport, lo
+   vuelve contenedor de recorte y Safari iOS rompe el header sticky/fixed. No hace falta:
+   el único que desborda es el ticker y ese ya recorta solo con su .ticker{overflow:hidden}. */
+html{-webkit-text-size-adjust:100%;}
 body{
   background:var(--ink);color:var(--bone);font-family:var(--sans);
   line-height:1.55;-webkit-font-smoothing:antialiased;
