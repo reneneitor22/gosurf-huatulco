@@ -75,16 +75,20 @@ header.nav{
      momentum y deja ver la página por encima del menú. sticky va anclado al
      contenedor de scroll y no se desincroniza. */
   position:sticky;top:0;z-index:300;
-  height:64px;
-  padding-top:env(safe-area-inset-top,0px);
-  box-sizing:content-box;
-  /* el margen negativo cancela alto + notch, para que el hero siga empezando arriba */
-  margin-bottom:calc(-64px - env(safe-area-inset-top,0px));
+  height:64px;margin-bottom:-64px;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
   padding-inline:var(--pad);border-bottom:1px solid transparent;
   transition:background .45s var(--ease),border-color .45s;
 }
 header.nav.stuck{background:rgba(11,11,11,.94);border-bottom-color:var(--line)}
+/* Safari iOS ancla el header DEBAJO del safe-area-inset-top (~47px con notch) y ahí se
+   asoma el hero. Este pseudo extiende el fondo del header hacia arriba y tapa la franja
+   sin importar dónde ponga Safari el origen. Hereda el background: transparente arriba
+   del todo, negro cuando está stuck. */
+header.nav::before{
+  content:"";position:absolute;left:0;right:0;bottom:100%;height:120px;
+  background:inherit;pointer-events:none;
+}
 .brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .brand .mark{width:30px;height:30px;background:var(--hot);display:grid;place-items:center;color:var(--bone);flex-shrink:0}
 .brand b{font-family:var(--disp);font-size:19px;letter-spacing:.01em;line-height:1;display:block;text-transform:uppercase}
