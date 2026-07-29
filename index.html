@@ -71,13 +71,20 @@ body::after{
 
 /* ---------- NAV ---------- */
 header.nav{
-  position:fixed;top:0;left:0;right:0;z-index:300;
-  transform:translateZ(0);-webkit-transform:translateZ(0);will-change:transform;
+  /* sticky, NO fixed: iOS Safari despega los position:fixed durante el scroll con
+     momentum y deja ver la página por encima del menú. sticky va anclado al
+     contenedor de scroll y no se desincroniza. */
+  position:sticky;top:0;z-index:300;
+  height:64px;
+  padding-top:env(safe-area-inset-top,0px);
+  box-sizing:content-box;
+  /* el margen negativo cancela alto + notch, para que el hero siga empezando arriba */
+  margin-bottom:calc(-64px - env(safe-area-inset-top,0px));
   display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding:16px var(--pad);border-bottom:1px solid transparent;
-  transition:background .45s var(--ease),border-color .45s,padding .4s;
+  padding-inline:var(--pad);border-bottom:1px solid transparent;
+  transition:background .45s var(--ease),border-color .45s;
 }
-header.nav.stuck{background:rgba(11,11,11,.94);border-bottom-color:var(--line);padding-block:11px}
+header.nav.stuck{background:rgba(11,11,11,.94);border-bottom-color:var(--line)}
 .brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .brand .mark{width:30px;height:30px;background:var(--hot);display:grid;place-items:center;color:var(--bone);flex-shrink:0}
 .brand b{font-family:var(--disp);font-size:19px;letter-spacing:.01em;line-height:1;display:block;text-transform:uppercase}
