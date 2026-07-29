@@ -83,20 +83,17 @@ body::after{
 
 /* ---------- NAV ---------- */
 header.nav{
-  /* sticky, NO fixed: iOS Safari despega los position:fixed durante el scroll con
-     momentum y deja ver la página por encima del menú. sticky va anclado al
-     contenedor de scroll y no se desincroniza. */
-  /* SIN margen negativo y con fondo sólido: el header ocupa su espacio real en el flujo
-     en vez de flotar encima del hero. Así no hay nada que se pueda asomar por arriba,
-     pase lo que pase con el sticky en Safari iOS. */
+  /* transparente encima del hero, y se pone oscuro al hacer scroll.
+     El margen negativo cancela su alto para que el hero siga empezando hasta arriba.
+     Alto FIJO a proposito: si el padding cambiara con el scroll, el margen negativo
+     dejaria de cuadrar. */
   position:sticky;top:0;z-index:300;
-  height:64px;
-  background:var(--ink);
+  height:64px;margin-bottom:-64px;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
   padding-inline:var(--pad);border-bottom:1px solid transparent;
   transition:background .45s var(--ease),border-color .45s;
 }
-header.nav.stuck{border-bottom-color:var(--line)}
+header.nav.stuck{background:rgba(11,11,11,.94);border-bottom-color:var(--line)}
 .brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .brand .mark{width:30px;height:30px;background:var(--hot);display:grid;place-items:center;color:var(--bone);flex-shrink:0}
 .brand b{font-family:var(--disp);font-size:19px;letter-spacing:.01em;line-height:1;display:block;text-transform:uppercase}
@@ -136,7 +133,7 @@ nav.links a:hover{color:var(--bone)}nav.links a:hover::after{width:100%}
 .btn-sm{padding:10px 18px;font-size:10px}
 
 /* ---------- HERO ---------- */
-.hero{position:relative;min-height:calc(100svh - 64px);display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
 .hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden}
 .hero-bg img{width:100%;height:112%;object-fit:cover;filter:saturate(.82) contrast(1.06);will-change:transform}
 .hero-bg::after{
