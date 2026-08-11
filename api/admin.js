@@ -1,6 +1,6 @@
 import {
   read, update, json, leerBody, crearToken, tokenValido,
-  hoyISO, esISO, limpiar, clamp, soloDigitos, diasOcupados,
+  hoyISO, esISO, limpiar, clamp, soloDigitos, diasOcupados, FOTOS, fotoURL,
 } from '../lib/db.js';
 
 const ESTADOS = ['pendiente', 'pagada', 'cancelada', 'completada'];
@@ -40,6 +40,9 @@ export default async function handler(req, res) {
       const { pin, seguridad, ...resto } = actual;
       return json(res, 200, {
         ...resto,
+        // el panel solo necesita saber cuáles cambió y dónde verlas
+        fotos: Object.fromEntries(Object.entries(actual.fotos || {}).map(([k, v]) => [k, fotoURL(k, v)])),
+        slots: FOTOS,
         hoy: hoyISO(),
         ocupados: Object.fromEntries(diasOcupados(actual)),
         mpConfigurado: Boolean(process.env.MP_ACCESS_TOKEN),

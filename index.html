@@ -1117,7 +1117,8 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
    CONFIG — datos reales del deck de Robert
    ============================================================ */
 const CONFIG = {
-  // Fotos: viven en el repo, no en el panel.
+  // Fotos: el repo trae las originales y Robert puede reemplazar
+  // cualquiera desde /admin (llegan por /api/public como /api/foto?slot=...).
   // film-*.jpg son temporales de banco (Unsplash); turn/board son de Robert
   gallery: ['fotos/film-barrel.jpg','fotos/turn.jpg','fotos/board.jpg','fotos/film-beach.jpg'],
   spotImgs: ['fotos/hero.jpg','fotos/barrel.jpg','fotos/ridge.jpg','fotos/surf-rocks.jpg','fotos/turn.jpg',
@@ -2391,7 +2392,24 @@ async function cargarConfig(){
       puravida:{ ...CFG.puravida, ...(c.puravida||{}), i18n:{ ...CFG.puravida.i18n, ...(c.puravida?.i18n||{}) } },
       negocio:{ ...CFG.negocio, ...(c.negocio||{}) },
       reglas:{ ...CFG.reglas, ...(c.reglas||{}) } };
+    aplicarFotos(c.fotos);
   } catch(e){ /* sin backend: se usa el respaldo de arriba */ }
+}
+
+/* Fotos que Robert cambió desde el panel. La llave es el archivo original
+   (hero.jpg, robert.jpg…), así que basta con reescribir todo lo que apunte
+   a él: las <img> que ya están puestas y las listas que se pintan después. */
+function aplicarFotos(mapa){
+  if(!mapa || !Object.keys(mapa).length) return;
+  const nueva = ruta => mapa[String(ruta).split('/').pop()] || ruta;
+
+  document.querySelectorAll('img[src^="fotos/"]').forEach(img=>{
+    const n = nueva(img.getAttribute('src'));
+    if(n !== img.getAttribute('src')) img.setAttribute('src', n);
+  });
+  document.querySelectorAll('[data-img]').forEach(el=>{ el.dataset.img = nueva(el.dataset.img); });
+  CONFIG.gallery  = CONFIG.gallery.map(nueva);
+  CONFIG.spotImgs = CONFIG.spotImgs.map(nueva);
 }
 
 /* Días ya apartados. Si falla, el calendario se ve libre pero el servidor

@@ -138,6 +138,24 @@ tbody tr:hover{background:#FAFAF8}
 .i18n-tabs button:hover{background:#F2F1EE}
 .i18n-tabs button.on{background:var(--sage);border-color:var(--sage);color:#fff}
 
+/* ---------- Fotos ---------- */
+.fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+/* min-width:0 obligatorio: sin esto los hijos del grid se niegan a encoger
+   y el panel se desborda a lo ancho en el teléfono */
+.foto{min-width:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.foto .im{position:relative;aspect-ratio:4/3;background:#EFEEEB}
+.foto .im img{width:100%;height:100%;object-fit:cover;display:block}
+.foto .im .cambiada{
+  position:absolute;top:8px;left:8px;background:rgba(46,42,37,.82);color:#fff;
+  font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:3px 7px;border-radius:99px;
+}
+.foto .tx{padding:11px 12px 12px;flex:1;display:flex;flex-direction:column;gap:4px}
+.foto .tx b{font-size:14px}
+.foto .tx small{color:var(--ink-3);font-size:12px;line-height:1.45}
+.foto .bs{display:flex;gap:6px;padding:0 12px 12px;flex-wrap:wrap}
+.foto.subiendo{opacity:.55;pointer-events:none}
+.zona{margin:22px 0 10px;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.zona:first-child{margin-top:0}
 @media(max-width:820px){
   /* `grid-template-rows` explícito: con filas automáticas el grid reparte el
      alto sobrante entre las dos y la barra de pestañas se estiraba media
@@ -188,6 +206,7 @@ tbody tr:hover{background:#FAFAF8}
     <button class="nav on" data-v="reservas">Reservas</button>
     <button class="nav" data-v="calendario">Calendario</button>
     <button class="nav" data-v="precios">Precios</button>
+    <button class="nav" data-v="fotos">Fotos</button>
     <button class="nav" data-v="ajustes">Ajustes</button>
     <div class="sp"></div>
     <button class="nav out" id="salir">Salir</button>
@@ -322,6 +341,22 @@ tbody tr:hover{background:#FAFAF8}
         <button class="btn" id="guardarPrecios">Guardar precios</button>
         <span id="mpEstado" style="font-size:12.5px;color:var(--ink-3)"></span>
       </div>
+    </section>
+
+    <!-- ---------- FOTOS ---------- -->
+    <section data-view="fotos" hidden>
+      <div class="ph">
+        <h1>Fotos</h1>
+        <p>Cambia cualquier foto de la página. Se ve en el sitio en cuanto termina de subir; si no te gusta, con “Quitar” vuelve la de antes.</p>
+      </div>
+
+      <div class="card">
+        <h2>Cómo salen mejor</h2>
+        <p>Horizontales para las franjas anchas y la portada, verticales para la ladera. No importa si vienen pesadas del teléfono: aquí se achican solas antes de subir. JPG, PNG o WEBP.</p>
+      </div>
+
+      <div id="fotosLista"></div>
+      <input type="file" id="fotoFile" accept="image/jpeg,image/png,image/webp" hidden>
     </section>
 
     <!-- ---------- AJUSTES ---------- -->
@@ -487,6 +522,7 @@ async function cargar(){
   pintarReservas();
   pintarCalendario();
   pintarPrecios();
+  pintarFotos();
   pintarAjustes();
 }
 
@@ -796,6 +832,131 @@ async function guardar(parche, exito){
     flash(exito);
     return r;
   } catch(e){ flash(e.message, 'err'); }
+}
+
+/* ============================================================
+   Fotos
+
+   El teléfono manda fotos de 4 y 5 MB; el cuerpo de una petición no
+   aguanta tanto, así que se achican aquí antes de subir. La llave de
+   cada foto es el archivo original, y quitar la nueva devuelve esa.
+   ============================================================ */
+const LADO_MAX = 2000;    // de sobra para pantalla retina
+const CALIDAD  = 0.82;
+let slotEnCurso = null;
+
+function pintarFotos(){
+  const puestas = D.fotos || {};
+  const zonas = [];
+  for(const s of (D.slots || [])){
+    let z = zonas.find(x=> x.zona === s.zona);
+    if(!z){ z = { zona:s.zona, items:[] }; zonas.push(z); }
+    z.items.push(s);
+  }
+
+  $('fotosLista').innerHTML = zonas.map(z=>`
+    <div class="zona">${esc(z.zona)}</div>
+    <div class="fotos">
+      ${z.items.map(s=>{
+        const tuya = puestas[s.id];
+        return `<div class="foto" data-slot="${s.id}">
+          <div class="im">
+            <img src="${tuya || ('/fotos/' + s.id)}" alt="${esc(s.label)}" loading="lazy">
+            ${tuya ? '<span class="cambiada">Tuya</span>' : ''}
+          </div>
+          <div class="tx"><b>${esc(s.label)}</b><small>${esc(s.nota)}</small></div>
+          <div class="bs">
+            <button class="btn sm" data-op="cambiar">Cambiar</button>
+            ${tuya ? '<button class="btn sm ghost" data-op="quitar">Quitar</button>' : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+
+  $('fotosLista').querySelectorAll('.foto').forEach(c=>{
+    c.querySelector('[data-op="cambiar"]').onclick = ()=> pedirArchivo(c.dataset.slot);
+    const q = c.querySelector('[data-op="quitar"]');
+    if(q) q.onclick = ()=> quitarFoto(c.dataset.slot);
+  });
+}
+
+function pedirArchivo(slot){
+  slotEnCurso = slot;
+  const inp = $('fotoFile');
+  inp.value = '';   // sin esto, escoger dos veces la misma foto no dispara `change`
+  inp.click();
+}
+
+$('fotoFile').onchange = async (e)=>{
+  const archivo = e.target.files?.[0];
+  const slot = slotEnCurso;
+  slotEnCurso = null;
+  if(!archivo || !slot) return;
+
+  const tarjeta = $('fotosLista').querySelector(`.foto[data-slot="${slot}"]`);
+  tarjeta?.classList.add('subiendo');
+  try {
+    const dataUrl = await achicar(archivo);
+    const r = await apiFoto('subir', { slot, dataUrl });
+    D.fotos = { ...(D.fotos || {}), [slot]: r.url };
+    pintarFotos();
+    flash('Listo. La foto ya se ve en la página.');
+  } catch(err){
+    tarjeta?.classList.remove('subiendo');
+    flash(err.message || 'No se pudo subir la foto.', 'err');
+  }
+};
+
+async function quitarFoto(slot){
+  if(!confirm('¿Quitar esta foto y dejar la que traía la página?')) return;
+  try {
+    await apiFoto('quitar', { slot });
+    const copia = { ...(D.fotos || {}) };
+    delete copia[slot];
+    D.fotos = copia;
+    pintarFotos();
+    flash('Volvió la foto de antes.');
+  } catch(err){ flash(err.message, 'err'); }
+}
+
+async function achicar(archivo){
+  const img = await cargarImagen(archivo);
+  const ancho = img.width, alto = img.height;
+  const escala = Math.min(1, LADO_MAX / Math.max(ancho, alto));
+  const w = Math.max(1, Math.round(ancho * escala));
+  const h = Math.max(1, Math.round(alto * escala));
+  const lienzo = document.createElement('canvas');
+  lienzo.width = w; lienzo.height = h;
+  lienzo.getContext('2d').drawImage(img, 0, 0, w, h);
+  img.close?.();
+  return lienzo.toDataURL('image/jpeg', CALIDAD);
+}
+
+/* createImageBitmap respeta la rotación del EXIF: sin eso, las fotos
+   verticales del teléfono se suben acostadas. */
+async function cargarImagen(archivo){
+  if(window.createImageBitmap){
+    try { return await createImageBitmap(archivo, { imageOrientation:'from-image' }); } catch(e){}
+  }
+  return new Promise((ok, falla)=>{
+    const img = new Image();
+    img.onload = ()=> ok(img);
+    img.onerror = ()=> falla(new Error('No se pudo leer esa foto.'));
+    img.src = URL.createObjectURL(archivo);
+  });
+}
+
+async function apiFoto(accion, cuerpo){
+  const r = await fetch('/api/foto?accion=' + accion, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-gs-token': TOKEN },
+    body: JSON.stringify(cuerpo),
+  });
+  let c = {};
+  try { c = await r.json(); } catch {}
+  if(r.status === 401){ salir(); throw new Error('Sesión expirada.'); }
+  if(!r.ok) throw new Error(c.error || 'No se pudo guardar la foto.');
+  return c;
 }
 
 /* ============================================================

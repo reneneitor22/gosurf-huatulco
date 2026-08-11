@@ -28,6 +28,7 @@ const TIPOS = {
 const rutas = {
   '/api/public': () => import('./api/public.js'),
   '/api/admin': () => import('./api/admin.js'),
+  '/api/foto': () => import('./api/foto.js'),
   '/api/reserva': () => import('./api/reserva.js'),
   '/api/webhook': () => import('./api/webhook.js'),
 };

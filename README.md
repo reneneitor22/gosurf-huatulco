@@ -121,6 +121,26 @@ nombres:
 | `logo-cactus.jpg` | og:image |
 | resto | hover de spots (`CONFIG.spotImgs`) |
 
+### Cambiarlas desde el panel
+
+Robert puede reemplazar cualquiera de las 20 fotos desde **Fotos** sin tocar el repo.
+La llave de cada una es el nombre del archivo original (`hero.jpg`, `robert.jpg`…), así
+que al subir una nueva se reescribe todo lo que apuntaba a ese archivo: las `<img>` ya
+puestas, los `data-img` del hover y las listas de `CONFIG`. "Quitar" borra la suya y
+vuelve la del repo, que nunca se toca.
+
+El navegador achica la foto a 2000 px de lado y JPEG 0.82 antes de subirla (las del
+teléfono pesan más que el límite de 4.5 MB del cuerpo de una función), y usa
+`createImageBitmap(..., {imageOrientation:'from-image'})` para que las verticales no
+se suban acostadas.
+
+Las fotos nuevas viven en el mismo Blob **privado** que los datos y se sirven por
+`/api/foto?slot=hero.jpg&v=…`, no con URL pública: así no hay que abrir el store. El `v`
+cambia con cada subida, por eso la respuesta va con `immutable` y un año de caché y aun
+así el cambio se ve al instante. La lista de slots (id, zona, texto de ayuda) vive en
+`FOTOS` de `lib/db.js` y es también la lista blanca del endpoint. Sin
+`BLOB_READ_WRITE_TOKEN` (local) se guardan en una carpeta temporal.
+
 ## Pendientes con Robert
 
 - **Credenciales de Mercado Pago** (Access Token). Sin ellas no se cobra en línea.
@@ -148,9 +168,10 @@ párrafo tienen versión por idioma, el nombre y el lugar no (son propios).
 
 ## El panel de Robert
 
-`/admin.html`, con PIN. Cuatro pestañas: **Reservas** (con quién pagó y cuánto),
+`/admin.html`, con PIN. Cinco pestañas: **Reservas** (con quién pagó y cuánto),
 **Calendario** (bloquear días a mano), **Precios** (tiers, solo-guía, filmación, lessons
-y sus meses, y el % de anticipo) y **Ajustes** (contacto, Pura Vida Beach Club, reglas y PIN).
+y sus meses, y el % de anticipo), **Fotos** (cambiar cualquier foto de la página) y
+**Ajustes** (contacto, Pura Vida Beach Club, reglas y PIN).
 
 PIN inicial **1234**. Se cambia en **Ajustes → PIN del panel**, que pide el PIN actual y
 va aparte del botón de "Guardar ajustes" (para no cambiarlo sin querer). Cinco intentos
