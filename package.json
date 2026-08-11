@@ -1,0 +1,10 @@
+{
+  "name": "gosurf-huatulco",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "GO SURF — Roberto Alonso Cisneros · sitio, reservas con anticipo por Mercado Pago y panel",
+  "dependencies": {
+    "@vercel/blob": "^2.7.0"
+  }
+}

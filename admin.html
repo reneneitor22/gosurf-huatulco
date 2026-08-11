@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>GO SURF · Panel</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23edefe9'/><circle cx='50' cy='50' r='30' fill='none' stroke='%235a4833' stroke-width='6'/></svg>">
+<style>
+/* ============================================================
+   Panel de Robert. Herramienta de trabajo, no la página:
+   tarjetas blancas, etiquetas chicas, formularios en rejilla.
+   El acento café/salvia es lo único que hereda de la marca.
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F5F3; --card:#fff; --line:#E2E1DD; --line-2:#CFCDC7;
+  --ink:#2E2A25; --ink-2:#6B655C; --ink-3:#9A948A;
+  --brown:#5A4833; --sage:#55655A; --clay:#A9613C;
+  --ok:#3F7A55; --warn:#B07A1F;
+  --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-text-size-adjust:100%}
+a{color:var(--sage)}
+
+/* ---------- login ---------- */
+.gate{min-height:100dvh;display:grid;place-items:center;padding:24px}
+.gate form{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:28px;width:100%;max-width:340px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.gate h1{font-size:17px;font-weight:600;margin-bottom:4px}
+.gate p{color:var(--ink-3);font-size:12.5px;margin-bottom:18px}
+
+/* ---------- estructura ---------- */
+.app{display:none;min-height:100dvh;grid-template-columns:220px 1fr}
+.app.on{display:grid}
+.side{background:#fff;border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100dvh}
+.brand{display:flex;align-items:center;gap:9px;padding:4px 8px 16px}
+.brand svg{flex:none}
+.brand b{font-size:14px;font-weight:600;letter-spacing:.02em}
+.side button.nav{
+  display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:0;
+  padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--ink-2);font:inherit;font-size:13.5px;transition:.15s;
+}
+.side button.nav:hover{background:#F2F1EE;color:var(--ink)}
+.side button.nav.on{background:var(--brown);color:#fff}
+.side .sp{flex:1}
+.side .out{color:var(--ink-3);font-size:12px}
+
+/* min-width:0 es obligatorio: los hijos de un grid valen `auto` por defecto,
+   así que la tabla ancha de reservas estiraba la columna y desbordaba la
+   página entera en el teléfono en vez de hacer scroll dentro de su caja. */
+.main{padding:26px clamp(16px,3vw,34px) 60px;max-width:1180px;min-width:0}
+.side{min-width:0}
+.ph{margin-bottom:20px}
+.ph h1{font-size:21px;font-weight:600;letter-spacing:-.01em}
+.ph p{color:var(--ink-3);font-size:13px;margin-top:3px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card>h2{font-size:14px;font-weight:600;margin-bottom:3px}
+.card>h2+p{color:var(--ink-3);font-size:12.5px;margin-bottom:16px}
+
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+label.f{display:block}
+label.f>span{display:block;font-size:11.5px;font-weight:500;color:var(--ink-2);margin-bottom:5px}
+input,select,textarea{
+  width:100%;font:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--line-2);
+  border-radius:7px;background:#fff;color:var(--ink);
+}
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(85,101,90,.28);outline-offset:0;border-color:var(--sage)}
+textarea{min-height:74px;resize:vertical}
+input[type=checkbox]{width:auto;accent-color:var(--sage);margin-right:7px;vertical-align:-2px}
+
+.btn{
+  font:inherit;font-size:13px;font-weight:500;padding:8px 15px;border-radius:7px;border:1px solid transparent;
+  cursor:pointer;background:var(--brown);color:#fff;transition:.15s;
+}
+.btn:hover{filter:brightness(1.12)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ghost{background:#fff;border-color:var(--line-2);color:var(--ink)}
+.btn.ghost:hover{background:#F2F1EE;filter:none}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.danger{background:#fff;border-color:#D9BFB4;color:#9B4A2A}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px}
+
+/* min-width para que la tabla haga scroll dentro de .tw en vez de exprimir
+   las columnas hasta partir el folio en dos renglones */
+table{width:100%;min-width:720px;border-collapse:collapse;font-size:13px}
+td:first-child,td:nth-child(2){white-space:nowrap}
+th{text-align:left;font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;padding:0 10px 8px;white-space:nowrap}
+td{padding:11px 10px;border-top:1px solid var(--line);vertical-align:top}
+tbody tr:hover{background:#FAFAF8}
+.tw{overflow-x:auto;margin:0 -20px;padding:0 20px}
+
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.tag.pendiente{background:#FBF0DA;color:var(--warn)}
+.tag.pagada{background:#E2F0E6;color:var(--ok)}
+.tag.completada{background:#E8EAF0;color:#4A5568}
+.tag.cancelada{background:#F0EEEC;color:var(--ink-3)}
+.tag.prov{background:#F6E7DE;color:var(--clay)}
+
+.msg{padding:11px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;display:none}
+.msg.on{display:block}
+.msg.ok{background:#E2F0E6;color:#2C5E3F}
+.msg.err{background:#F8E4DC;color:#93401F}
+
+.empty{color:var(--ink-3);font-size:13px;text-align:center;padding:26px 0}
+
+/* ---------- calendario ---------- */
+.cal{max-width:430px}
+.calbar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.calbar b{flex:1;text-align:center;font-size:14px;font-weight:600}
+.calbar button{width:32px;height:32px;border:1px solid var(--line-2);background:#fff;border-radius:7px;cursor:pointer;font-size:15px;line-height:1}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cg .dw{text-align:center;font-size:10.5px;color:var(--ink-3);font-weight:600;padding-bottom:4px}
+.cd{
+  aspect-ratio:1;border:1px solid var(--line);border-radius:7px;background:#fff;cursor:pointer;
+  font:inherit;font-size:13px;display:grid;place-items:center;position:relative;transition:.15s;color:var(--ink);
+}
+.cd:hover:not(:disabled){border-color:var(--brown)}
+.cd:disabled{opacity:.3;cursor:not-allowed}
+.cd.blank{visibility:hidden}
+.cd.robert{background:var(--brown);border-color:var(--brown);color:#fff}
+.cd.pagada{background:var(--ok);border-color:var(--ok);color:#fff}
+.cd.hold{background:#FBF0DA;border-color:#E4C989;color:var(--warn)}
+.leg{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-size:11.5px;color:var(--ink-2)}
+.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px;border:1px solid var(--line-2)}
+
+.hint{font-size:12px;color:var(--ink-3);margin-top:10px;line-height:1.6}
+
+/* ---------- pestañas de idioma para los textos libres ---------- */
+.i18n-tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.i18n-tabs button{
+  font:inherit;font-size:12px;padding:5px 11px;border:1px solid var(--line-2);border-radius:99px;
+  background:#fff;color:var(--ink-2);cursor:pointer;transition:.15s;
+}
+.i18n-tabs button:hover{background:#F2F1EE}
+.i18n-tabs button.on{background:var(--sage);border-color:var(--sage);color:#fff}
+
+@media(max-width:820px){
+  /* `grid-template-rows` explícito: con filas automáticas el grid reparte el
+     alto sobrante entre las dos y la barra de pestañas se estiraba media
+     pantalla. */
+  .app.on{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .side{
+    position:static;height:auto;flex-direction:row;align-items:center;overflow-x:auto;gap:6px;
+    border-right:0;border-bottom:1px solid var(--line);padding:10px;
+  }
+  .brand{display:none}
+  /* sin `flex:none` los botones se estiran a lo alto de la barra */
+  .side button.nav{width:auto;flex:none;white-space:nowrap;padding:8px 12px}
+  .side .sp{display:none}
+  /* Salir se queda: en el teléfono es la única forma de cerrar sesión */
+  .side button.nav.out{margin-left:auto}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .main{padding:18px 14px 50px}
+  .tw{margin:0 -20px;padding:0 20px}
+  /* dedos, no cursor */
+  .btn.sm{padding:8px 12px;font-size:12.5px}
+  .calbar button{width:40px;height:40px}
+  .side button.nav{padding:10px 13px}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div class="gate" id="gate">
+  <form id="loginForm">
+    <h1>GO SURF · Panel</h1>
+    <p>Entra con tu PIN para ver reservas y cambiar precios.</p>
+    <div class="msg err" id="loginMsg"></div>
+    <label class="f"><span>PIN</span>
+      <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" autofocus>
+    </label>
+    <div class="acts"><button class="btn" style="width:100%">Entrar</button></div>
+  </form>
+</div>
+
+<!-- ================= APP ================= -->
+<div class="app" id="app">
+  <nav class="side">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 100 100"><circle cx="50" cy="50" r="34" fill="none" stroke="#5A4833" stroke-width="7"/></svg>
+      <b>GO SURF</b>
+    </div>
+    <button class="nav on" data-v="reservas">Reservas</button>
+    <button class="nav" data-v="calendario">Calendario</button>
+    <button class="nav" data-v="precios">Precios</button>
+    <button class="nav" data-v="ajustes">Ajustes</button>
+    <div class="sp"></div>
+    <button class="nav out" id="salir">Salir</button>
+  </nav>
+
+  <main class="main">
+    <div class="msg" id="flash"></div>
+
+    <!-- ---------- RESERVAS ---------- -->
+    <section data-view="reservas">
+      <div class="ph">
+        <h1>Reservas</h1>
+        <p>Lo que la gente apartó desde la página. Pagada significa que el anticipo ya entró.</p>
+      </div>
+      <div class="card">
+        <div class="grid g4" style="margin-bottom:16px">
+          <label class="f"><span>Ver</span>
+            <select id="fEstado">
+              <option value="activas">Activas (pendientes y pagadas)</option>
+              <option value="todas">Todas</option>
+              <option value="pendiente">Solo pendientes</option>
+              <option value="pagada">Solo pagadas</option>
+              <option value="cancelada">Solo canceladas</option>
+            </select>
+          </label>
+          <label class="f"><span>Buscar</span><input id="fBuscar" placeholder="Nombre, folio o teléfono"></label>
+        </div>
+        <div class="tw">
+          <table>
+            <thead><tr>
+              <th>Folio</th><th>Fechas</th><th>Cliente</th><th>Trip</th>
+              <th>Total</th><th>Anticipo</th><th>Estado</th><th></th>
+            </tr></thead>
+            <tbody id="tbRes"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="resVacio" style="display:none">Todavía no hay reservas.</div>
+      </div>
+    </section>
+
+    <!-- ---------- CALENDARIO ---------- -->
+    <section data-view="calendario" hidden>
+      <div class="ph">
+        <h1>Calendario</h1>
+        <p>Bloquea los días que no puedes trabajar. Los que ya tienen reserva pagada se bloquean solos.</p>
+      </div>
+      <div class="card cal">
+        <div class="calbar">
+          <button type="button" id="cPrev">‹</button>
+          <b id="cTitle">—</b>
+          <button type="button" id="cNext">›</button>
+        </div>
+        <div class="cg" id="cGrid"></div>
+        <div class="leg">
+          <span><i style="background:#fff"></i>Libre</span>
+          <span><i style="background:var(--brown);border-color:var(--brown)"></i>Bloqueado por ti</span>
+          <span><i style="background:var(--ok);border-color:var(--ok)"></i>Reserva pagada</span>
+          <span><i style="background:#FBF0DA;border-color:#E4C989"></i>Apartado sin pagar</span>
+        </div>
+        <p class="hint">Toca un día libre para bloquearlo, y otra vez para soltarlo. Los días con reserva pagada no se pueden soltar desde aquí: cancela la reserva en la pestaña de Reservas.</p>
+      </div>
+    </section>
+
+    <!-- ---------- PRECIOS ---------- -->
+    <section data-view="precios" hidden>
+      <div class="ph">
+        <h1>Precios</h1>
+        <p>Lo que cambies aquí se ve en la página en cuanto guardas.</p>
+      </div>
+
+      <div class="card">
+        <h2>Surf trip completo</h2>
+        <p>Por persona y por día. Incluye transportación, guía, sombra, comida y botiquín.</p>
+        <label style="display:block;margin-bottom:14px"><input type="checkbox" id="tripActivo">Se puede reservar en la página</label>
+        <div class="grid g4" id="tripTiers"></div>
+      </div>
+
+      <div class="card">
+        <h2>Solo guía <span class="tag prov" id="guiaProvTag">Precio por confirmar</span></h2>
+        <p>Cuando el cliente trae carro y nada más quiere que lo lleves a los picos. Por persona y por día.</p>
+        <label style="display:block;margin-bottom:10px"><input type="checkbox" id="guiaActivo">Se puede reservar en la página</label>
+        <label style="display:block;margin-bottom:14px"><input type="checkbox" id="guiaProv">Marcar el precio como “por confirmar”</label>
+        <div class="grid g4" id="guiaTiers"></div>
+      </div>
+
+      <div class="card">
+        <h2>Surf lessons <span class="tag prov" id="lesProvTag">Precio por confirmar</span></h2>
+        <p>Solo se ofrecen dentro de la temporada que escojas. Por persona y por clase.</p>
+        <label style="display:block;margin-bottom:10px"><input type="checkbox" id="lesActivo">Se pueden reservar en la página</label>
+        <label style="display:block;margin-bottom:14px"><input type="checkbox" id="lesProv">Marcar el precio como “por confirmar”</label>
+        <div class="grid g3">
+          <label class="f"><span>Precio por persona / clase (MXN)</span><input id="lesPrecio" type="number" min="0" step="50"></label>
+          <label class="f"><span>Desde el mes</span><select id="lesIni"></select></label>
+          <label class="f"><span>Hasta el mes</span><select id="lesFin"></select></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Filmación</h2>
+        <p>Se cobra por sesión, no por persona: el precio es el mismo vaya uno o vayan seis.</p>
+        <label style="display:block;margin-bottom:10px"><input type="checkbox" id="filmActivo">Se puede agregar en la página</label>
+        <div class="grid g2" id="filmOpts"></div>
+        <div class="grid g2" style="margin-top:12px">
+          <label class="f"><span>Máximo de sesiones por reserva</span><input id="filmMax" type="number" min="1" max="30"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Anticipo</h2>
+        <p>El porcentaje que se cobra para apartar el día. Se calcula sobre el total, filmación incluida.</p>
+        <label style="display:block;margin-bottom:14px"><input type="checkbox" id="antActivo">Cobrar anticipo para apartar</label>
+        <div class="grid g2">
+          <label class="f"><span>Porcentaje (%)</span><input id="antPct" type="number" min="0" max="100"></label>
+        </div>
+        <div class="i18n" style="margin-top:12px">
+          <div class="i18n-tabs" data-grupo="pol">
+            <button type="button" class="on" data-l="es">Español</button>
+            <button type="button" data-l="en">English</button>
+            <button type="button" data-l="fr">Français</button>
+            <button type="button" data-l="pt">Português</button>
+          </div>
+          <label class="f"><span>Política de cancelación (se muestra junto al botón de pago)</span>
+            <textarea id="antPol" data-grupo="pol" data-l="es"></textarea>
+            <textarea id="antPolEn" data-grupo="pol" data-l="en" hidden></textarea>
+            <textarea id="antPolFr" data-grupo="pol" data-l="fr" hidden></textarea>
+            <textarea id="antPolPt" data-grupo="pol" data-l="pt" hidden></textarea>
+          </label>
+        </div>
+      </div>
+
+      <div class="acts">
+        <button class="btn" id="guardarPrecios">Guardar precios</button>
+        <span id="mpEstado" style="font-size:12.5px;color:var(--ink-3)"></span>
+      </div>
+    </section>
+
+    <!-- ---------- AJUSTES ---------- -->
+    <section data-view="ajustes" hidden>
+      <div class="ph">
+        <h1>Ajustes</h1>
+        <p>Tus datos de contacto, el cuadro de Pura Vida y el PIN de este panel.</p>
+      </div>
+
+      <div class="card">
+        <h2>Contacto</h2>
+        <p>El WhatsApp es a donde llegan las reservas. Va con lada de país y sin espacios: 52 + 10 dígitos.</p>
+        <div class="grid g2">
+          <label class="f"><span>Nombre del negocio</span><input id="nNombre"></label>
+          <label class="f"><span>Tu nombre</span><input id="nGuia"></label>
+          <label class="f"><span>WhatsApp</span><input id="nWa" inputmode="numeric"></label>
+          <label class="f"><span>Correo</span><input id="nEmail" type="email"></label>
+          <label class="f"><span>Instagram (sin @)</span><input id="nIg"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Pura Vida Surf &amp; Beach Club</h2>
+        <p>El bloque verde de la página, entre las olas y filmación. Es tu beach club, no el surf trip.</p>
+        <label style="display:block;margin-bottom:14px"><input type="checkbox" id="pvActivo">Mostrarlo en la página</label>
+        <div class="grid g3" style="margin-bottom:16px">
+          <label class="f"><span>Nombre del club</span><input id="pvNombre"></label>
+          <label class="f"><span>Dónde está</span><input id="pvLugar"></label>
+          <label class="f"><span>Instagram (sin @)</span><input id="pvIg"></label>
+        </div>
+        <div class="i18n">
+          <div class="i18n-tabs" data-grupo="pv">
+            <button type="button" class="on" data-l="es">Español</button>
+            <button type="button" data-l="en">English</button>
+            <button type="button" data-l="fr">Français</button>
+            <button type="button" data-l="pt">Português</button>
+          </div>
+          <div class="grid">
+            <label class="f"><span>Frase grande</span>
+              <input id="pvLinea" data-grupo="pv" data-l="es">
+              <input id="pvLineaEn" data-grupo="pv" data-l="en" hidden>
+              <input id="pvLineaFr" data-grupo="pv" data-l="fr" hidden>
+              <input id="pvLineaPt" data-grupo="pv" data-l="pt" hidden>
+            </label>
+            <label class="f"><span>Horario</span>
+              <input id="pvHorario" data-grupo="pv" data-l="es">
+              <input id="pvHorarioEn" data-grupo="pv" data-l="en" hidden>
+              <input id="pvHorarioFr" data-grupo="pv" data-l="fr" hidden>
+              <input id="pvHorarioPt" data-grupo="pv" data-l="pt" hidden>
+            </label>
+            <label class="f"><span>Texto</span>
+              <textarea id="pvTexto" data-grupo="pv" data-l="es"></textarea>
+              <textarea id="pvTextoEn" data-grupo="pv" data-l="en" hidden></textarea>
+              <textarea id="pvTextoFr" data-grupo="pv" data-l="fr" hidden></textarea>
+              <textarea id="pvTextoPt" data-grupo="pv" data-l="pt" hidden></textarea>
+            </label>
+          </div>
+        </div>
+        <p class="hint">La página está en cuatro idiomas. Cambia la pestaña para editar cada versión; si dejas una en blanco se usa la de español.</p>
+      </div>
+
+      <div class="card">
+        <h2>Reglas de reserva</h2>
+        <div class="grid g4">
+          <label class="f"><span>Máximo de personas</span><input id="rPax" type="number" min="1" max="40"></label>
+          <label class="f"><span>Máximo de días</span><input id="rDias" type="number" min="1" max="60"></label>
+          <label class="f"><span>Se puede reservar hasta (días)</span><input id="rVista" type="number" min="7" max="730"></label>
+          <label class="f"><span>Minutos que se aparta mientras paga</span><input id="rHold" type="number" min="5" max="180"></label>
+        </div>
+        <p class="hint">Los minutos de apartado son los que el día queda reservado mientras el cliente termina de pagar en Mercado Pago. Si no paga, se libera solo.</p>
+      </div>
+
+      <div class="acts"><button class="btn" id="guardarAjustes">Guardar ajustes</button></div>
+
+      <div class="card" style="margin-top:26px;border-color:#DCD2C6">
+        <h2>PIN del panel</h2>
+        <p>Mínimo 4 caracteres. Este es el único candado del panel: cámbialo si se lo enseñaste a alguien.</p>
+        <div class="msg" id="pinMsg"></div>
+        <div class="grid g3">
+          <label class="f"><span>PIN actual</span><input id="pinActual" type="password" inputmode="numeric" autocomplete="current-password"></label>
+          <label class="f"><span>PIN nuevo</span><input id="pinNuevo" type="password" inputmode="numeric" autocomplete="new-password"></label>
+          <label class="f"><span>Confirmar el nuevo</span><input id="pinConf" type="password" inputmode="numeric" autocomplete="new-password"></label>
+        </div>
+        <div class="acts"><button class="btn" id="cambiarPin">Cambiar PIN</button></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   Estado y llamadas
+   ============================================================ */
+let TOKEN = sessionStorage.getItem('gs_token') || '';
+let D = null;                 // los datos completos del panel
+let calMes = new Date();
+
+const $ = id => document.getElementById(id);
+const fmt = n => Number(n||0).toLocaleString('es-MX');
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+async function api(accion, body){
+  const url = '/api/admin?accion=' + accion;
+  const opciones = { headers:{ 'Content-Type':'application/json', 'x-gs-token': TOKEN } };
+  if(body !== undefined){ opciones.method = 'POST'; opciones.body = JSON.stringify(body); }
+  const r = await fetch(url, opciones);
+  let c = {};
+  try { c = await r.json(); } catch {}
+  // `login` y `pin` devuelven 401 cuando el PIN está mal, no cuando la sesión
+  // murió: si aquí cerráramos sesión, teclear mal el PIN actual te echaría
+  // fuera del panel en vez de decirte que te equivocaste.
+  if(r.status === 401 && !['login', 'pin'].includes(accion)){
+    salir();
+    throw new Error('Sesión expirada.');
+  }
+  if(!r.ok) throw new Error(c.error || 'Error del servidor');
+  return c;
+}
+
+function flash(txt, tipo='ok'){
+  const f = $('flash');
+  f.textContent = txt;
+  f.className = 'msg on ' + tipo;
+  clearTimeout(flash.t);
+  flash.t = setTimeout(()=> f.className = 'msg', 4000);
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+/* ============================================================
+   Entrar / salir
+   ============================================================ */
+$('loginForm').onsubmit = async e=>{
+  e.preventDefault();
+  const m = $('loginMsg');
+  m.className = 'msg err';
+  try {
+    const r = await api('login', { pin: $('pin').value });
+    TOKEN = r.token;
+    sessionStorage.setItem('gs_token', TOKEN);
+    await entrar();
+  } catch(err){
+    m.textContent = err.message;
+    m.className = 'msg err on';
+  }
+};
+
+function salir(){
+  TOKEN = '';
+  sessionStorage.removeItem('gs_token');
+  $('app').classList.remove('on');
+  $('gate').style.display = 'grid';
+}
+$('salir').onclick = salir;
+
+async function entrar(){
+  await cargar();
+  $('gate').style.display = 'none';
+  $('app').classList.add('on');
+}
+
+async function cargar(){
+  D = await api('data');
+  pintarReservas();
+  pintarCalendario();
+  pintarPrecios();
+  pintarAjustes();
+}
+
+/* ============================================================
+   Navegación
+   ============================================================ */
+document.querySelectorAll('.side .nav[data-v]').forEach(b=> b.onclick = ()=>{
+  document.querySelectorAll('.side .nav').forEach(x=> x.classList.remove('on'));
+  b.classList.add('on');
+  document.querySelectorAll('[data-view]').forEach(s=> s.hidden = s.dataset.view !== b.dataset.v);
+  window.scrollTo(0,0);
+});
+
+/* ============================================================
+   Reservas
+   ============================================================ */
+$('fEstado').onchange = pintarReservas;
+$('fBuscar').oninput = pintarReservas;
+
+function rangoTxt(r){
+  if(!r.fechas?.length) return '—';
+  const f = r.fechas[0], l = r.fechas[r.fechas.length-1];
+  const d = iso => { const [y,m,dd] = iso.split('-'); return `${+dd} ${MESES[+m-1].slice(0,3)}`; };
+  return r.fechas.length === 1 ? d(f) : `${d(f)} — ${d(l)}`;
+}
+
+function pintarReservas(){
+  const filtro = $('fEstado').value;
+  const q = $('fBuscar').value.trim().toLowerCase();
+  let lista = [...(D.reservas||[])].sort((a,b)=> (b.fechas?.[0]||'').localeCompare(a.fechas?.[0]||''));
+
+  if(filtro === 'activas') lista = lista.filter(r=> ['pendiente','pagada'].includes(r.estado));
+  else if(filtro !== 'todas') lista = lista.filter(r=> r.estado === filtro);
+  if(q) lista = lista.filter(r=> [r.folio,r.cliente,r.telefono].join(' ').toLowerCase().includes(q));
+
+  $('resVacio').style.display = lista.length ? 'none' : '';
+  $('tbRes').innerHTML = lista.map(r=>{
+    const pagado = r.pago && r.estado !== 'cancelada';
+    const wa = `https://wa.me/${r.telefono}?text=${encodeURIComponent(`Hola ${r.cliente}, soy Robert de GO SURF. Sobre tu reserva ${r.folio}:`)}`;
+    return `<tr>
+      <td><b>${r.folio}</b>${r.conflicto?`<br><span class="tag prov">Encimada</span>`:''}</td>
+      <td>${rangoTxt(r)}<br><span style="color:var(--ink-3);font-size:12px">${r.dias} ${r.dias===1?'día':'días'}</span></td>
+      <td>${esc(r.cliente)}<br><a href="${wa}" target="_blank" rel="noopener" style="font-size:12px">${esc(r.telefono)}</a></td>
+      <td>${servNombre(r.servicio)}<br><span style="color:var(--ink-3);font-size:12px">${r.pax} pax${r.film?' · con filmación':''}</span></td>
+      <td>$${fmt(r.total)}</td>
+      <td>${pagado
+            ? `<b style="color:var(--ok)">$${fmt(r.pago.monto)}</b><br><span style="color:var(--ink-3);font-size:11.5px">${r.pago.metodo==='manual'?'a mano':'Mercado Pago'}</span>`
+            : `<span style="color:var(--ink-3)">$${fmt(r.anticipo)} sin pagar</span>`}</td>
+      <td><span class="tag ${r.estado}">${r.estado}</span></td>
+      <td style="white-space:nowrap">
+        ${r.estado==='pendiente'?`<button class="btn sm" data-op="cobrado" data-f="${r.folio}">Marcar cobrada</button> `:''}
+        ${r.estado==='pagada'?`<button class="btn sm ghost" data-op="completada" data-f="${r.folio}">Completar</button> `:''}
+        ${r.estado!=='cancelada'?`<button class="btn sm danger" data-op="cancelada" data-f="${r.folio}">Cancelar</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  $('tbRes').querySelectorAll('button[data-op]').forEach(b=> b.onclick = ()=> accionReserva(b.dataset.f, b.dataset.op));
+}
+
+const esc = s => String(s??'').replace(/[<>&]/g, c=> ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const servNombre = s => ({trip:'Trip completo', guia:'Solo guía', lessons:'Surf lessons'}[s] || s);
+
+async function accionReserva(folio, op){
+  const textos = {
+    cobrado:  `¿Marcar ${folio} como cobrada? Se aparta el día como si hubiera pagado en línea.`,
+    cancelada:`¿Cancelar ${folio}? Se liberan sus días para que otro los pueda reservar.`,
+    completada:`¿Marcar ${folio} como completada?`
+  };
+  if(!confirm(textos[op] || '¿Seguro?')) return;
+  try {
+    await api('reserva', { folio, op });
+    await cargar();
+    flash('Reserva actualizada.');
+  } catch(e){ flash(e.message, 'err'); }
+}
+
+/* ============================================================
+   Calendario
+   ============================================================ */
+const isoDe = (y,m,d)=> `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+function pintarCalendario(){
+  const y = calMes.getFullYear(), m = calMes.getMonth();
+  $('cTitle').textContent = `${MESES[m].charAt(0).toUpperCase()+MESES[m].slice(1)} ${y}`;
+
+  const dow = ['L','M','M','J','V','S','D'];
+  const primero = (new Date(y,m,1).getDay() + 6) % 7;   // semana empieza en lunes
+  const total = new Date(y,m+1,0).getDate();
+  const oc = D.ocupados || {};
+
+  let html = dow.map(d=>`<span class="dw">${d}</span>`).join('');
+  html += Array.from({length:primero},()=>`<button class="cd blank" disabled></button>`).join('');
+  for(let d=1; d<=total; d++){
+    const iso = isoDe(y,m,d);
+    const motivo = oc[iso] || '';
+    const pasado = iso < D.hoy;
+    html += `<button class="cd ${motivo}" data-iso="${iso}" ${pasado?'disabled':''} title="${
+      motivo==='robert'?'Bloqueado por ti':motivo==='pagada'?'Reserva pagada':motivo==='hold'?'Apartado, esperando pago':''}">${d}</button>`;
+  }
+  $('cGrid').innerHTML = html;
+
+  $('cGrid').querySelectorAll('.cd[data-iso]').forEach(b=> b.onclick = ()=> alternarBloqueo(b.dataset.iso, oc[b.dataset.iso]));
+}
+
+async function alternarBloqueo(fecha, motivo){
+  if(motivo === 'pagada'){
+    flash('Ese día tiene una reserva pagada. Cancélala en Reservas si lo quieres liberar.', 'err');
+    return;
+  }
+  if(motivo === 'hold'){
+    flash('Alguien lo está pagando ahora mismo. Si no paga, se libera solo.', 'err');
+    return;
+  }
+  try {
+    await api('bloqueo', { fecha, op: motivo === 'robert' ? 'quitar' : 'poner' });
+    await cargar();
+    flash(motivo === 'robert' ? 'Día liberado.' : 'Día bloqueado.');
+  } catch(e){ flash(e.message, 'err'); }
+}
+
+$('cPrev').onclick = ()=>{ calMes.setMonth(calMes.getMonth()-1); pintarCalendario(); };
+$('cNext').onclick = ()=>{ calMes.setMonth(calMes.getMonth()+1); pintarCalendario(); };
+
+/* ============================================================
+   Precios
+   ============================================================ */
+const GRUPOS = ['1 persona','2 personas','3 personas','4 o más'];
+
+function filasTiers(destino, tiers){
+  $(destino).innerHTML = tiers.map((t,i)=>`
+    <label class="f"><span>${GRUPOS[i] || `${t.min}–${t.max}`}</span>
+      <input type="number" min="0" step="50" value="${t.precio}" data-min="${t.min}" data-max="${t.max}">
+    </label>`).join('');
+}
+
+function leerTiers(destino){
+  return [...$(destino).querySelectorAll('input')].map(i=>({
+    min:+i.dataset.min, max:+i.dataset.max, precio:+i.value || 0
+  }));
+}
+
+function pintarPrecios(){
+  $('tripActivo').checked = D.servicios.trip.activo !== false;
+  filasTiers('tripTiers', D.servicios.trip.tiers);
+
+  $('guiaActivo').checked = D.servicios.guia.activo !== false;
+  $('guiaProv').checked = !!D.servicios.guia.provisional;
+  $('guiaProvTag').style.display = D.servicios.guia.provisional ? '' : 'none';
+  filasTiers('guiaTiers', D.servicios.guia.tiers);
+
+  const le = D.servicios.lessons;
+  $('lesActivo').checked = le.activo !== false;
+  $('lesProv').checked = !!le.provisional;
+  $('lesProvTag').style.display = le.provisional ? '' : 'none';
+  $('lesPrecio').value = le.precio;
+  [['lesIni', le.mesInicio], ['lesFin', le.mesFin]].forEach(([id, val])=>{
+    $(id).innerHTML = MESES.map((n,i)=>`<option value="${i+1}" ${i+1===val?'selected':''}>${n}</option>`).join('');
+  });
+
+  $('filmActivo').checked = D.filmacion.activo !== false;
+  $('filmMax').value = D.filmacion.maxSesiones;
+  $('filmOpts').innerHTML = D.filmacion.opciones.map(o=>`
+    <div class="grid g2">
+      <label class="f"><span>Duración (horas)</span><input type="number" min="1" max="24" value="${o.horas}" data-id="${o.id}" data-k="horas"></label>
+      <label class="f"><span>Precio por sesión (MXN)</span><input type="number" min="0" step="50" value="${o.precio}" data-id="${o.id}" data-k="precio"></label>
+    </div>`).join('');
+
+  $('antActivo').checked = D.anticipo.activo !== false;
+  $('antPct').value = D.anticipo.pct;
+  $('antPol').value = D.anticipo.politica || '';
+  const pi = D.anticipo.politicaI18n || {};
+  $('antPolEn').value = pi.en || ''; $('antPolFr').value = pi.fr || ''; $('antPolPt').value = pi.pt || '';
+
+  $('mpEstado').textContent = D.mpConfigurado
+    ? 'Mercado Pago está conectado.'
+    : 'Mercado Pago todavía no está conectado: la página no muestra el botón de pagar.';
+}
+
+['guiaProv','lesProv'].forEach(id=> $(id).onchange = ()=>{
+  $(id === 'guiaProv' ? 'guiaProvTag' : 'lesProvTag').style.display = $(id).checked ? '' : 'none';
+});
+
+$('guardarPrecios').onclick = async ()=>{
+  const opciones = D.filmacion.opciones.map(o=>{
+    const campo = k => $('filmOpts').querySelector(`input[data-id="${o.id}"][data-k="${k}"]`);
+    return { id:o.id, horas:+campo('horas').value, precio:+campo('precio').value };
+  });
+  const parche = {
+    servicios:{
+      trip:{ activo:$('tripActivo').checked, tiers:leerTiers('tripTiers') },
+      guia:{ activo:$('guiaActivo').checked, provisional:$('guiaProv').checked, tiers:leerTiers('guiaTiers') },
+      lessons:{ activo:$('lesActivo').checked, provisional:$('lesProv').checked,
+                precio:+$('lesPrecio').value, mesInicio:+$('lesIni').value, mesFin:+$('lesFin').value }
+    },
+    filmacion:{ activo:$('filmActivo').checked, maxSesiones:+$('filmMax').value, opciones },
+    anticipo:{ activo:$('antActivo').checked, pct:+$('antPct').value, politica:$('antPol').value,
+               politicaI18n:{ en:$('antPolEn').value, fr:$('antPolFr').value, pt:$('antPolPt').value } }
+  };
+  await guardar(parche, 'Precios guardados.');
+};
+
+/* ============================================================
+   Pestañas de idioma de los textos libres
+   ============================================================ */
+document.querySelectorAll('.i18n-tabs').forEach(tabs=>{
+  const grupo = tabs.dataset.grupo;
+  tabs.querySelectorAll('button').forEach(b=> b.onclick = ()=>{
+    tabs.querySelectorAll('button').forEach(x=> x.classList.remove('on'));
+    b.classList.add('on');
+    document.querySelectorAll(`[data-grupo="${grupo}"][data-l]`).forEach(el=>{
+      if(el.tagName === 'BUTTON') return;
+      el.hidden = el.dataset.l !== b.dataset.l;
+    });
+  });
+});
+
+/* ============================================================
+   Ajustes
+   ============================================================ */
+function pintarAjustes(){
+  $('nNombre').value = D.negocio.nombre || '';
+  $('nGuia').value   = D.negocio.guia || '';
+  $('nWa').value     = D.negocio.whatsapp || '';
+  $('nEmail').value  = D.negocio.email || '';
+  $('nIg').value     = D.negocio.instagram || '';
+
+  $('pvActivo').checked = D.puravida.activo !== false;
+  $('pvNombre').value  = D.puravida.nombre || '';
+  $('pvLugar').value   = D.puravida.lugar || '';
+  $('pvIg').value      = D.puravida.instagram || '';
+  $('pvLinea').value   = D.puravida.linea || '';
+  $('pvHorario').value = D.puravida.horario || '';
+  $('pvTexto').value   = D.puravida.texto || '';
+  for(const L of ['en','fr','pt']){
+    const tr = D.puravida.i18n?.[L] || {};
+    const S = L[0].toUpperCase() + L.slice(1);
+    $('pvLinea'+S).value   = tr.linea || '';
+    $('pvHorario'+S).value = tr.horario || '';
+    $('pvTexto'+S).value   = tr.texto || '';
+  }
+
+  $('rPax').value   = D.reglas.maxPax;
+  $('rDias').value  = D.reglas.maxDias;
+  $('rVista').value = D.reglas.diasVista;
+  $('rHold').value  = D.reglas.holdMin;
+}
+
+$('guardarAjustes').onclick = async ()=>{
+  const parche = {
+    negocio:{ nombre:$('nNombre').value, guia:$('nGuia').value, whatsapp:$('nWa').value,
+              email:$('nEmail').value, instagram:$('nIg').value },
+    puravida:{ activo:$('pvActivo').checked, provisional:!!D.puravida.provisional,
+               nombre:$('pvNombre').value, lugar:$('pvLugar').value, instagram:$('pvIg').value,
+               linea:$('pvLinea').value, horario:$('pvHorario').value, texto:$('pvTexto').value,
+               i18n:{
+                 en:{ linea:$('pvLineaEn').value, horario:$('pvHorarioEn').value, texto:$('pvTextoEn').value },
+                 fr:{ linea:$('pvLineaFr').value, horario:$('pvHorarioFr').value, texto:$('pvTextoFr').value },
+                 pt:{ linea:$('pvLineaPt').value, horario:$('pvHorarioPt').value, texto:$('pvTextoPt').value }
+               } },
+    reglas:{ maxPax:+$('rPax').value, maxDias:+$('rDias').value,
+             diasVista:+$('rVista').value, holdMin:+$('rHold').value }
+  };
+  await guardar(parche, 'Ajustes guardados.');
+};
+
+/* El PIN va por su cuenta y pide el actual: no se cambia por accidente
+   al guardar los demás ajustes. */
+$('cambiarPin').onclick = async ()=>{
+  const m = $('pinMsg');
+  const btn = $('cambiarPin');
+  const datos = {
+    actual: $('pinActual').value,
+    nuevo: $('pinNuevo').value.trim(),
+    confirma: $('pinConf').value.trim()
+  };
+  if(!datos.actual){ msgPin('Escribe tu PIN actual.', 'err'); return; }
+  if(datos.nuevo.length < 4){ msgPin('El PIN nuevo debe tener al menos 4 caracteres.', 'err'); return; }
+  if(datos.nuevo !== datos.confirma){ msgPin('El PIN nuevo y su confirmación no coinciden.', 'err'); return; }
+
+  btn.disabled = true;
+  try {
+    const r = await api('pin', datos);
+    // el token viejo se firmó con el PIN viejo: hay que reemplazarlo o la
+    // siguiente petición sale con sesión expirada
+    TOKEN = r.token;
+    sessionStorage.setItem('gs_token', TOKEN);
+    $('pinActual').value = $('pinNuevo').value = $('pinConf').value = '';
+    msgPin('PIN cambiado. Úsalo la próxima vez que entres.', 'ok');
+  } catch(e){
+    msgPin(e.message, 'err');
+  } finally { btn.disabled = false; }
+};
+
+function msgPin(txt, tipo){
+  const m = $('pinMsg');
+  m.textContent = txt;
+  m.className = 'msg on ' + tipo;
+  clearTimeout(msgPin.t);
+  msgPin.t = setTimeout(()=> m.className = 'msg', 6000);
+}
+
+async function guardar(parche, exito){
+  try {
+    const r = await api('guardar', { parche });
+    await cargar();
+    flash(exito);
+    return r;
+  } catch(e){ flash(e.message, 'err'); }
+}
+
+/* ============================================================
+   Arranque
+   ============================================================ */
+(async ()=>{
+  if(!TOKEN) return;
+  try { await entrar(); } catch(e){ salir(); }
+})();
+</script>
+</body>
+</html>
