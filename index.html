@@ -592,6 +592,14 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
 .foot-links a,.foot-links span{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-2);transition:.3s}
 .foot-links a:hover{color:var(--acc)}
 .foot-btm{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;color:var(--fg-3)}
+/* Entrada al panel: se ve apagada hasta que la tocas, y en el teléfono
+   se va sola al último renglón para no pelearse con el resto. */
+.panel-link{
+  color:var(--fg-3);border:1px solid var(--line);border-radius:99px;
+  padding:3px 12px;line-height:1.6;transition:color .25s,border-color .25s;
+}
+.panel-link:hover,.panel-link:focus-visible{color:var(--fg);border-color:var(--line-2)}
+@media(max-width:640px){ .panel-link{margin-left:auto} }
 
 .fab{
   position:fixed;right:18px;bottom:18px;z-index:200;width:52px;height:52px;background:#25D366;border-radius:50%;
@@ -1104,6 +1112,9 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
     <div class="foot-btm mono">
       <span>© <span id="yr"></span> GO SURF · Roberto Alonso Cisneros</span>
       <span data-i18n="footloc">Bahías de Huatulco · Oaxaca · México</span>
+      <!-- Entrada de Robert al panel. Discreta a propósito: el cliente no
+           tiene por qué verla, pero él la encuentra sin pedirle el link a nadie. -->
+      <a href="/admin" class="panel-link" rel="nofollow">Panel</a>
     </div>
   </div>
 </footer>
