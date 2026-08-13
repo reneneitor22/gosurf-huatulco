@@ -23,12 +23,14 @@ const TIPOS = {
   '.json': 'application/json; charset=utf-8',
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
   '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.webp': 'image/webp',
+  '.mp4': 'video/mp4', '.webm': 'video/webm',
 };
 
 const rutas = {
   '/api/public': () => import('./api/public.js'),
   '/api/admin': () => import('./api/admin.js'),
   '/api/foto': () => import('./api/foto.js'),
+  '/api/video': () => import('./api/video.js'),
   '/api/reserva': () => import('./api/reserva.js'),
   '/api/webhook': () => import('./api/webhook.js'),
 };

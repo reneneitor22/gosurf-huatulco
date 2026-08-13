@@ -84,6 +84,13 @@ Robert nos dé el suyo (salen marcados "Precio por confirmar" en la página):
 |---|---|---|
 | Solo guía (el cliente trae carro) | 2500 / 2200 / 1800 / 1500 | persona · día |
 | Surf lessons — solo diciembre a febrero | 1,200 | persona · clase |
+| **Surf trip en lancha** | **en blanco** — lo pone Robert | persona · día |
+
+El de la **lancha nace sin precio a propósito**: en cero, la página lo enseña como
+"precio por confirmar", deja armar el trip y manda todo a WhatsApp — no cobra anticipo
+de $0. `cotizar()` en `lib/db.js` rechaza cualquier reserva cuyo total dé 0, así que el
+candado no depende del navegador. En cuanto Robert escribe los precios en el panel se
+reserva y se paga como los demás, sin tocar código.
 
 El total es la suma de las líneas. Sobre ese total se cobra el **anticipo del 30 %**,
 que no es reembolsable. Todo se edita desde el panel.
@@ -141,6 +148,50 @@ así el cambio se ve al instante. La lista de slots (id, zona, texto de ayuda) v
 `FOTOS` de `lib/db.js` y es también la lista blanca del endpoint. Sin
 `BLOB_READ_WRITE_TOKEN` (local) se guardan en una carpeta temporal.
 
+## Videos
+
+Cuatro huecos, no una galería libre: **portada** (16/9, encima de la foto del hero) y
+**tres clips** que toman el lugar de los primeros cuadros de la galería de filmación.
+La lista vive en `VIDEOS` de `lib/db.js` y es también la lista blanca del endpoint.
+Hueco sin video = la foto de siempre; nada se rompe si Robert no sube ninguno.
+
+Se ven **en silencio, en bucle y sin controles**. Los de filmación solo corren mientras
+están en pantalla (un `IntersectionObserver` los pausa al salir): tres videos en bucle a
+la vez calientan el teléfono. Si el navegador no deja arrancar el de portada —segundo
+plano, bajo consumo— **no se quita**: se reintenta al volver al frente, y mientras se ve
+su portada. Quitarlo al primer `play()` rechazado dejaba la portada sin video.
+
+### Lo que hace el panel antes de subir
+
+Un clip del teléfono pesa 40 MB y viene en H.265, que solo se ve en iPhone. El panel lo
+**vuelve a grabar**: lo pinta cuadro por cuadro en un canvas a 1280 px de ancho y lo
+graba con `MediaRecorder` (MP4/H.264 si el navegador puede, WEBM si no). Eso arregla de
+un golpe peso, códec y duración —la grabación se corta sola a los **7 s** de
+`VIDEO_SEG_MAX`—. Tarda lo que dura el clip porque se reproduce en tiempo real: no hay
+otra forma sin un servidor con ffmpeg. Si el archivo ya viene chico (≤6 MB), corto y
+compatible, se sube tal cual.
+
+El dibujo va con `setInterval`, no con `requestAnimationFrame`: si Robert se cambia de
+app a media subida, rAF se congela y la grabación se queda colgada para siempre.
+
+También se saca una **portada** del primer cuadro y viaja en la misma petición final:
+sin ella iOS enseña negro hasta que decide cargar el video.
+
+### Cómo viaja y cómo se sirve
+
+El cuerpo de una función de Vercel no pasa de 4.5 MB, así que el navegador parte el
+archivo en pedazos de 2 MB (`accion=parte` → `tmp/`) y `accion=fin` los pega, comprueba
+por **bytes** que sea MP4 o WEBM de verdad (rechaza `.mov` de iPhone y cualquier cosa con
+`hvc1`/`hev1`) y lo publica. Si alguien abandona a media subida quedan pedazos huérfanos:
+los barre el siguiente `fin` (más de 2 h).
+
+Se sirve por `/api/video?slot=hero&v=…` **con rangos**: Safari pide `Range` antes de
+tocar un `<video>` y si el servidor contesta 200 con todo, no reproduce. Y como la
+respuesta tampoco puede pasar de 4.5 MB, cada tajada se recorta a 3 MB aunque el
+navegador pida "de aquí al final" — un archivo de 8 MB se entrega en tres tajadas, byte
+por byte idéntico al original (probado). La portada sale del mismo endpoint con
+`&poster=1`.
+
 ## Pendientes con Robert
 
 - **Credenciales de Mercado Pago** (Access Token). Sin ellas no se cobra en línea.
@@ -149,6 +200,19 @@ así el cambio se ve al instante. La lista de slots (id, zona, texto de ayuda) v
 - **Si los del surf trip tienen algo del club incluido** (comida, bebida, descuento).
 - **Testimonios**: los 3 que están son inventados. Pedir reseñas reales o quitar la sección.
 - Fotos en alta (las del PDF están a 800 px).
+
+## La costa y los extras
+
+Donde antes iba una galería de cinco olas, ahora hay **una sola foto de la costa a
+pantalla completa** (`costline.jpg`, cambiable desde el panel) con el texto encima y
+**cuatro puntos**, nada más. Lo "místico" no es un filtro: es una imagen grande, dos
+capas de niebla y una bruma que sube y baja lentísimo, apagada con `prefers-reduced-motion`.
+
+Debajo de los spots va **Fuera del agua**: masaje, hospedaje, renta de carro, pesca y
+clases de yoga. **Ninguno lleva precio** — cada tarjeta abre el WhatsApp de Robert con el
+mensaje ya escrito diciendo por cuál pregunta. La lista vive en `extras` de `lib/db.js`,
+se edita entera desde el panel (nombre, descripción y si se muestra) y va en los cuatro
+idiomas.
 
 ## Spots Around
 
@@ -168,10 +232,20 @@ párrafo tienen versión por idioma, el nombre y el lugar no (son propios).
 
 ## El panel de Robert
 
-`/admin.html`, con PIN. Cinco pestañas: **Reservas** (con quién pagó y cuánto),
-**Calendario** (bloquear días a mano), **Precios** (tiers, solo-guía, filmación, lessons
-y sus meses, y el % de anticipo), **Fotos** (cambiar cualquier foto de la página) y
+`/admin.html`, con PIN. Seis pestañas: **Reservas** (con quién pagó y cuánto),
+**Calendario**, **Precios** (tiers, solo-guía, lancha, filmación, lessons y sus meses, y
+el % de anticipo), **Textos**, **Fotos** (cambiar cualquier foto de la página) y
 **Ajustes** (contacto, Pura Vida Beach Club, reglas y PIN).
+
+En el **Calendario**, tocar un día ya no lo bloquea de un golpe: abre una ventana con lo
+que se puede hacer con él —bloquear con motivo, bloquear una racha de días de un jalón,
+liberar, o brincar a la reserva que lo tiene apartado—. El rango se resuelve en una sola
+escritura del lado del servidor (`accion=bloqueo` con `desde`/`hasta`).
+
+**Textos** es lo que dice la página: la portada, el bloque de la costa (con sus cuatro
+puntos) y los extras de "Fuera del agua". Un solo selector de idioma manda sobre toda la
+pestaña, y se edita sobre una copia que se manda completa al guardar: cambiar de idioma a
+media edición no pierde lo escrito. Los cuatro idiomas vienen ya traducidos de fábrica.
 
 PIN inicial **1234**. Se cambia en **Ajustes → PIN del panel**, que pide el PIN actual y
 va aparte del botón de "Guardar ajustes" (para no cambiarlo sin querer). Cinco intentos

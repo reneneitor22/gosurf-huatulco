@@ -157,6 +157,50 @@ tbody tr:hover{background:#FAFAF8}
 .zona{margin:22px 0 10px;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .zona:first-child{margin-top:0}
 
+/* ---------- Videos ----------
+   Misma tarjeta que las fotos: cambia lo de adentro (un <video> en vez de una
+   <img>) y la barra de avance, porque subir un clip sí tarda. */
+.foto .im video{width:100%;height:100%;object-fit:cover;display:block;background:#111}
+.foto .im .sinvideo{
+  position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:14px;
+  font-size:12px;color:#fff;background:linear-gradient(180deg,rgba(30,27,23,.15),rgba(30,27,23,.62))
+}
+.foto .im .sinvideo span{background:rgba(30,27,23,.55);padding:5px 10px;border-radius:99px}
+.foto .barra{height:4px;background:#EDECE8;border-radius:99px;overflow:hidden;margin:0 12px 12px;display:none}
+.foto.subiendo .barra{display:block}
+.foto .barra i{display:block;height:100%;width:0;background:var(--sage);transition:width .25s linear}
+.foto .paso{padding:0 12px 10px;font-size:12px;color:var(--ink-3);display:none}
+.foto.subiendo .paso{display:block}
+.foto .dat{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+/* ---------- ventana del día (calendario) ----------
+   Tocar un día ya no lo bloquea de golpe: abre esta ventana con lo que se
+   puede hacer con él (bloquear con motivo, bloquear hasta otra fecha,
+   liberar, o ver la reserva que lo tiene tomado). */
+.mod{position:fixed;inset:0;z-index:60;background:rgba(30,27,23,.55);display:none;place-items:center;padding:16px}
+.mod.on{display:grid}
+.mod-box{
+  background:#fff;border-radius:14px;width:min(460px,100%);max-height:calc(100dvh - 32px);overflow:auto;
+  box-shadow:0 24px 60px rgba(30,27,23,.28);
+}
+.mod-hd{display:flex;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+.mod-hd b{font-size:15.5px;line-height:1.3;display:block}
+.mod-hd small{display:block;color:var(--ink-3);font-size:12.5px;margin-top:3px}
+.mod-hd .x{margin-left:auto;background:none;border:0;font-size:18px;cursor:pointer;color:var(--ink-3);line-height:1}
+.mod-cuerpo{padding:18px 20px}
+.mod-estado{
+  display:inline-block;font-size:12px;padding:4px 10px;border-radius:99px;margin-bottom:14px;
+  background:#F1EFEA;color:var(--ink-2);
+}
+.mod-estado.robert{background:var(--brown);color:#fff}
+.mod-estado.pagada{background:var(--ok);color:#fff}
+.mod-estado.hold{background:#FBF0DA;color:#7A5B18}
+.mod-cuerpo p{font-size:13.5px;color:var(--ink-2);line-height:1.6;margin-bottom:14px}
+.mod-acc{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.mod-sep{border-top:1px solid var(--line);margin:18px 0 14px}
+.mod-rango{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+@media(max-width:520px){ .mod-rango{grid-template-columns:1fr} }
+
 /* ---------- editor de recorte ----------
    Se abre entre escoger el archivo y subirlo. El marco es del tamaño con el
    que la página recorta esa foto, así que lo que se ve aquí es lo que queda
@@ -253,7 +297,13 @@ tbody tr:hover{background:#FAFAF8}
     <button class="nav on" data-v="reservas">Reservas</button>
     <button class="nav" data-v="calendario">Calendario</button>
     <button class="nav" data-v="precios">Precios</button>
+    <button class="nav" data-v="textos">Textos</button>
     <button class="nav" data-v="fotos">Fotos</button>
+    <!-- Videos: el panel ya sube y convierte, pero la página todavía no los
+         enseña en ningún lado. Se queda escondido para no darle a Robert una
+         pestaña que no se ve en el sitio. Quitar este comentario cuando el
+         video del hero esté puesto en index.html. -->
+    <button class="nav" data-v="videos" hidden>Videos</button>
     <button class="nav" data-v="ajustes">Ajustes</button>
     <div class="sp"></div>
     <button class="nav out" id="salir">Salir</button>
@@ -313,7 +363,7 @@ tbody tr:hover{background:#FAFAF8}
           <span><i style="background:var(--ok);border-color:var(--ok)"></i>Reserva pagada</span>
           <span><i style="background:#FBF0DA;border-color:#E4C989"></i>Apartado sin pagar</span>
         </div>
-        <p class="hint">Toca un día libre para bloquearlo, y otra vez para soltarlo. Los días con reserva pagada no se pueden soltar desde aquí: cancela la reserva en la pestaña de Reservas.</p>
+        <p class="hint">Toca cualquier día y se abre con lo que puedes hacer con él: bloquearlo (con motivo), bloquear una racha de días de un jalón, liberarlo, o ver la reserva que lo tiene apartado. Los días con reserva pagada se sueltan cancelando la reserva.</p>
       </div>
     </section>
 
@@ -337,6 +387,14 @@ tbody tr:hover{background:#FAFAF8}
         <label style="display:block;margin-bottom:10px"><input type="checkbox" id="guiaActivo">Se puede reservar en la página</label>
         <label style="display:block;margin-bottom:14px"><input type="checkbox" id="guiaProv">Marcar el precio como “por confirmar”</label>
         <div class="grid g4" id="guiaTiers"></div>
+      </div>
+
+      <div class="card">
+        <h2>Surf trip en lancha <span class="tag prov" id="lanProvTag">Precio por confirmar</span></h2>
+        <p>El trip al que se llega por mar. <b>Mientras dejes los precios en blanco</b>, la página lo enseña como “precio por confirmar” y manda al cliente a tu WhatsApp: no cobra anticipo. En cuanto escribas los precios, se puede reservar y pagar como los demás.</p>
+        <label style="display:block;margin-bottom:10px"><input type="checkbox" id="lanActivo">Se puede reservar en la página</label>
+        <label style="display:block;margin-bottom:14px"><input type="checkbox" id="lanProv">Marcar el precio como “por confirmar”</label>
+        <div class="grid g4" id="lanTiers"></div>
       </div>
 
       <div class="card">
@@ -390,6 +448,54 @@ tbody tr:hover{background:#FAFAF8}
       </div>
     </section>
 
+    <!-- ---------- TEXTOS ----------
+         Lo que está escrito en la página: portada, el bloque de la costa y
+         los servicios que no se cobran aquí. Un solo selector de idioma
+         arriba manda sobre toda la pestaña. -->
+    <section data-view="textos" hidden>
+      <div class="ph">
+        <h1>Textos</h1>
+        <p>Lo que dice la página. Escribe primero el español; los otros tres idiomas ya vienen traducidos y los puedes cambiar cuando quieras.</p>
+      </div>
+
+      <div class="card">
+        <h2>Idioma que estás editando</h2>
+        <p>La página está en cuatro idiomas. Cambia aquí y todos los campos de abajo se cambian contigo.</p>
+        <div class="i18n-tabs" id="txTabs">
+          <button type="button" class="on" data-l="es">Español</button>
+          <button type="button" data-l="en">English</button>
+          <button type="button" data-l="fr">Français</button>
+          <button type="button" data-l="pt">Português</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Portada</h2>
+        <p>Lo primero que se lee al abrir la página, encima de la foto grande.</p>
+        <div class="grid" id="txHero"></div>
+      </div>
+
+      <div class="card">
+        <h2>La costa</h2>
+        <p>El bloque oscuro con la foto de la costa. Cuatro puntos, cortos: se leen en una línea cada uno.</p>
+        <div class="grid" id="txCosta"></div>
+      </div>
+
+      <div class="card">
+        <h2>Fuera del agua</h2>
+        <p>El encabezado de la sección donde van masaje, hospedaje, carro, pesca y yoga.</p>
+        <div class="grid" id="txExtras"></div>
+      </div>
+
+      <div class="card">
+        <h2>Lo que ofreces fuera del agua</h2>
+        <p>Ninguno lleva precio en la página: cada uno abre tu WhatsApp con el mensaje ya escrito. Si desmarcas uno, desaparece del sitio.</p>
+        <div id="txLista"></div>
+      </div>
+
+      <div class="acts"><button class="btn" id="guardarTextos">Guardar textos</button></div>
+    </section>
+
     <!-- ---------- FOTOS ---------- -->
     <section data-view="fotos" hidden>
       <div class="ph">
@@ -404,6 +510,22 @@ tbody tr:hover{background:#FAFAF8}
 
       <div id="fotosLista"></div>
       <input type="file" id="fotoFile" accept="image/jpeg,image/png,image/webp" hidden>
+    </section>
+
+    <!-- ---------- VIDEOS ---------- -->
+    <section data-view="videos" hidden>
+      <div class="ph">
+        <h1>Videos</h1>
+        <p>Clips cortos para la portada y la galería de filmación. Se ven solos, en bucle y sin sonido, como en Instagram.</p>
+      </div>
+
+      <div class="card">
+        <h2>Cómo salen mejor</h2>
+        <p>Manda el clip tal como salió del teléfono: aquí se corta a los primeros <b id="vSeg">7</b> segundos, se achica y se convierte para que se vea en iPhone y en Android. Tarda lo que dura el clip, así que no cierres esta pantalla mientras trabaja. Si un hueco no tiene video, se queda la foto de siempre.</p>
+      </div>
+
+      <div id="videosLista"></div>
+      <input type="file" id="videoFile" accept="video/*" hidden>
     </section>
 
     <!-- ---------- AJUSTES ---------- -->
@@ -491,6 +613,17 @@ tbody tr:hover{background:#FAFAF8}
       </div>
     </section>
   </main>
+</div>
+
+<!-- Ventana de un día del calendario -->
+<div class="mod" id="calMod" role="dialog" aria-modal="true" aria-label="Día del calendario">
+  <div class="mod-box">
+    <div class="mod-hd">
+      <div><b id="cmTitulo">—</b><small id="cmSub"></small></div>
+      <button class="x" id="cmX" title="Cerrar">✕</button>
+    </div>
+    <div class="mod-cuerpo" id="cmCuerpo"></div>
+  </div>
 </div>
 
 <!-- Editor de recorte: se abre solo al escoger una foto -->
@@ -596,10 +729,15 @@ async function entrar(){
 
 async function cargar(){
   D = await api('data');
+  // copias propias: se editan aquí y se mandan completas al guardar
+  TX = JSON.parse(JSON.stringify(D.textos || {}));
+  EX = JSON.parse(JSON.stringify(D.extras || []));
   pintarReservas();
   pintarCalendario();
   pintarPrecios();
+  pintarTextos();
   pintarFotos();
+  pintarVideos();
   pintarAjustes();
 }
 
@@ -702,22 +840,135 @@ function pintarCalendario(){
   }
   $('cGrid').innerHTML = html;
 
-  $('cGrid').querySelectorAll('.cd[data-iso]').forEach(b=> b.onclick = ()=> alternarBloqueo(b.dataset.iso, oc[b.dataset.iso]));
+  $('cGrid').querySelectorAll('.cd[data-iso]').forEach(b=> b.onclick = ()=> abrirDia(b.dataset.iso, oc[b.dataset.iso]));
 }
 
-async function alternarBloqueo(fecha, motivo){
-  if(motivo === 'pagada'){
-    flash('Ese día tiene una reserva pagada. Cancélala en Reservas si lo quieres liberar.', 'err');
+/* ------------------------------------------------------------
+   Ventana de un día
+
+   Antes, tocar un día lo bloqueaba de un golpe y no había más.
+   Ahora abre esta ventana: ahí se ve qué tiene ese día y se decide
+   — bloquear con motivo, bloquear una racha de días, liberar, o
+   brincar a la reserva que lo tiene tomado.
+   ------------------------------------------------------------ */
+let diaAbierto = null;
+
+const fechaLarga = iso=>{
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  return `${dias[dt.getDay()]} ${d} de ${MESES[m-1]} de ${y}`;
+};
+
+/** La reserva viva que ocupa esa fecha, si hay. */
+function reservaDe(iso){
+  return (D.reservas||[]).find(r=>
+    (r.fechas||[]).includes(iso) && ['pendiente','pagada','completada'].includes(r.estado));
+}
+
+function abrirDia(iso, motivo){
+  diaAbierto = iso;
+  const bloqueo = (D.bloqueos||[]).find(b=> b.fecha === iso);
+  const res = reservaDe(iso);
+
+  $('cmTitulo').textContent = fechaLarga(iso);
+  $('cmSub').textContent = iso;
+
+  const etiqueta = {
+    robert:'Bloqueado por ti', pagada:'Reserva pagada', hold:'Apartado, esperando pago'
+  }[motivo] || 'Libre';
+
+  let html = `<span class="mod-estado ${motivo||''}">${etiqueta}</span>`;
+
+  if(motivo === 'pagada' || motivo === 'hold'){
+    html += `<p>${motivo === 'pagada'
+      ? 'Este día ya tiene una reserva pagada. Para soltarlo, cancela la reserva.'
+      : 'Alguien lo está pagando ahora mismo. Si no termina de pagar, se libera solo.'}</p>`;
+    if(res){
+      html += `<p><b>${res.folio}</b> — ${esc(res.cliente)} · ${res.pax} pax · ${servNombre(res.servicio)}<br>
+                 <span style="color:var(--ink-3)">${res.dias} ${res.dias===1?'día':'días'} desde ${res.fechas[0]}</span></p>
+               <div class="mod-acc">
+                 <button class="btn sm" data-cm="reserva" data-folio="${res.folio}">Ver la reserva</button>
+                 <a class="btn sm ghost" href="https://wa.me/${res.telefono}" target="_blank" rel="noopener">Escribirle</a>
+               </div>`;
+    }
+  } else if(motivo === 'robert'){
+    html += `<p>Tú bloqueaste este día, así que nadie lo puede reservar.</p>
+      <label class="f"><span>Motivo (solo lo ves tú)</span>
+        <input id="cmNota" maxlength="60" value="${esc(bloqueo?.nota || '')}" placeholder="Vacaciones, viaje, familia…">
+      </label>
+      <div class="mod-acc">
+        <button class="btn sm" data-cm="nota">Guardar el motivo</button>
+        <button class="btn sm ghost" data-cm="liberar">Liberar este día</button>
+      </div>
+      <div class="mod-sep"></div>
+      <div class="mod-rango">
+        <label class="f"><span>Liberar desde este día hasta</span><input type="date" id="cmHasta" min="${iso}"></label>
+        <button class="btn sm ghost" data-cm="liberarRango">Liberar</button>
+      </div>`;
+  } else {
+    html += `<p>Este día está libre. Bloquéalo si no puedes trabajar, y nadie lo va a poder reservar.</p>
+      <label class="f"><span>Motivo (opcional, solo lo ves tú)</span>
+        <input id="cmNota" maxlength="60" placeholder="Vacaciones, viaje, familia…">
+      </label>
+      <div class="mod-acc">
+        <button class="btn sm" data-cm="bloquear">Bloquear este día</button>
+      </div>
+      <div class="mod-sep"></div>
+      <div class="mod-rango">
+        <label class="f"><span>Bloquear desde este día hasta</span><input type="date" id="cmHasta" min="${iso}"></label>
+        <button class="btn sm ghost" data-cm="bloquearRango">Bloquear</button>
+      </div>
+      <p style="margin:12px 0 0;font-size:12.5px;color:var(--ink-3)">Los días con reserva pagada dentro del rango no se tocan.</p>`;
+  }
+
+  $('cmCuerpo').innerHTML = html;
+  $('cmCuerpo').querySelectorAll('[data-cm]').forEach(b=> b.onclick = ()=> accionDia(b.dataset.cm, b.dataset.folio));
+  $('calMod').classList.add('on');
+}
+
+function cerrarDia(){ $('calMod').classList.remove('on'); diaAbierto = null; }
+$('cmX').onclick = cerrarDia;
+$('calMod').onclick = e=>{ if(e.target === $('calMod')) cerrarDia(); };
+addEventListener('keydown', e=>{ if(e.key === 'Escape' && $('calMod').classList.contains('on')) cerrarDia(); });
+
+async function accionDia(op, folio){
+  const iso = diaAbierto;
+  if(op === 'reserva'){
+    cerrarDia();
+    document.querySelector('.side .nav[data-v="reservas"]').click();
+    $('fEstado').value = 'todas';
+    $('fBuscar').value = folio;
+    pintarReservas();
     return;
   }
-  if(motivo === 'hold'){
-    flash('Alguien lo está pagando ahora mismo. Si no paga, se libera solo.', 'err');
-    return;
+
+  const nota = $('cmNota')?.value || '';
+  const hasta = $('cmHasta')?.value || '';
+  const cuerpos = {
+    bloquear:      { fecha: iso, op:'poner',  nota },
+    nota:          { fecha: iso, op:'poner',  nota },
+    liberar:       { fecha: iso, op:'quitar' },
+    bloquearRango: { desde: iso, hasta, op:'poner', nota },
+    liberarRango:  { desde: iso, hasta, op:'quitar' }
+  };
+  const cuerpo = cuerpos[op];
+  if(!cuerpo) return;
+  if(op.endsWith('Rango')){
+    if(!hasta){ flash('Escoge hasta qué día.', 'err'); return; }
+    if(hasta < iso){ flash('La fecha final va después del día que escogiste.', 'err'); return; }
   }
+
   try {
-    await api('bloqueo', { fecha, op: motivo === 'robert' ? 'quitar' : 'poner' });
+    const r = await api('bloqueo', cuerpo);
+    cerrarDia();
     await cargar();
-    flash(motivo === 'robert' ? 'Día liberado.' : 'Día bloqueado.');
+    const exitos = {
+      bloquear:'Día bloqueado.', nota:'Motivo guardado.', liberar:'Día liberado.',
+      bloquearRango:`${r.dias} ${r.dias===1?'día':'días'} bloqueados.`,
+      liberarRango:`${r.dias} ${r.dias===1?'día':'días'} liberados.`
+    };
+    flash(exitos[op] || 'Listo.');
   } catch(e){ flash(e.message, 'err'); }
 }
 
@@ -729,10 +980,13 @@ $('cNext').onclick = ()=>{ calMes.setMonth(calMes.getMonth()+1); pintarCalendari
    ============================================================ */
 const GRUPOS = ['1 persona','2 personas','3 personas','4 o más'];
 
-function filasTiers(destino, tiers){
+/* `blanco` deja el campo vacío cuando el precio es 0: así se ve que falta
+   ponerlo, en vez de un "0" que parece un precio de verdad. */
+function filasTiers(destino, tiers, blanco=false){
   $(destino).innerHTML = tiers.map((t,i)=>`
     <label class="f"><span>${GRUPOS[i] || `${t.min}–${t.max}`}</span>
-      <input type="number" min="0" step="50" value="${t.precio}" data-min="${t.min}" data-max="${t.max}">
+      <input type="number" min="0" step="50" value="${blanco && !t.precio ? '' : t.precio}"
+             placeholder="${blanco ? 'Falta' : ''}" data-min="${t.min}" data-max="${t.max}">
     </label>`).join('');
 }
 
@@ -750,6 +1004,12 @@ function pintarPrecios(){
   $('guiaProv').checked = !!D.servicios.guia.provisional;
   $('guiaProvTag').style.display = D.servicios.guia.provisional ? '' : 'none';
   filasTiers('guiaTiers', D.servicios.guia.tiers);
+
+  const lan = D.servicios.lancha;
+  $('lanActivo').checked = lan.activo !== false;
+  $('lanProv').checked = !!lan.provisional;
+  $('lanProvTag').style.display = lan.provisional ? '' : 'none';
+  filasTiers('lanTiers', lan.tiers, true);
 
   const le = D.servicios.lessons;
   $('lesActivo').checked = le.activo !== false;
@@ -779,8 +1039,9 @@ function pintarPrecios(){
     : 'Mercado Pago todavía no está conectado: la página no muestra el botón de pagar.';
 }
 
-['guiaProv','lesProv'].forEach(id=> $(id).onchange = ()=>{
-  $(id === 'guiaProv' ? 'guiaProvTag' : 'lesProvTag').style.display = $(id).checked ? '' : 'none';
+const TAGS_PROV = { guiaProv:'guiaProvTag', lesProv:'lesProvTag', lanProv:'lanProvTag' };
+Object.keys(TAGS_PROV).forEach(id=> $(id).onchange = ()=>{
+  $(TAGS_PROV[id]).style.display = $(id).checked ? '' : 'none';
 });
 
 $('guardarPrecios').onclick = async ()=>{
@@ -792,6 +1053,7 @@ $('guardarPrecios').onclick = async ()=>{
     servicios:{
       trip:{ activo:$('tripActivo').checked, tiers:leerTiers('tripTiers') },
       guia:{ activo:$('guiaActivo').checked, provisional:$('guiaProv').checked, tiers:leerTiers('guiaTiers') },
+      lancha:{ activo:$('lanActivo').checked, provisional:$('lanProv').checked, tiers:leerTiers('lanTiers') },
       lessons:{ activo:$('lesActivo').checked, provisional:$('lesProv').checked,
                 precio:+$('lesPrecio').value, mesInicio:+$('lesIni').value, mesFin:+$('lesFin').value }
     },
@@ -816,6 +1078,104 @@ document.querySelectorAll('.i18n-tabs').forEach(tabs=>{
     });
   });
 });
+
+/* ============================================================
+   Textos de la página
+
+   Se trabaja sobre una copia (TX / EX) y se manda completa al guardar:
+   así cambiar de idioma no pierde lo que ya escribiste en el otro.
+   ============================================================ */
+let TX = null, EX = null, txLang = 'es';
+
+/* Español es la base; los demás idiomas viven en `i18n`. */
+function txGet(o, k){
+  const v = txLang === 'es' ? o?.[k] : o?.i18n?.[txLang]?.[k];
+  return v === undefined || v === null ? '' : v;
+}
+function txSet(o, k, v){
+  if(txLang === 'es'){ o[k] = v; return; }
+  o.i18n = o.i18n || {};
+  o.i18n[txLang] = o.i18n[txLang] || {};
+  o.i18n[txLang][k] = v;
+}
+
+function campoTx(destino, o, k, etiqueta, largo){
+  const val = txGet(o, k);
+  const el = document.createElement('label');
+  el.className = 'f';
+  el.innerHTML = `<span>${etiqueta}</span>${largo
+    ? `<textarea maxlength="400"></textarea>`
+    : `<input maxlength="120">`}`;
+  const campo = el.querySelector('textarea,input');
+  campo.value = val;
+  campo.oninput = ()=> txSet(o, k, campo.value);
+  $(destino).appendChild(el);
+}
+
+function pintarTextos(){
+  if(!TX) return;
+  ['txHero','txCosta','txExtras','txLista'].forEach(id=> $(id).innerHTML = '');
+
+  campoTx('txHero', TX.hero, 'titulo', 'Título grande', false);
+  campoTx('txHero', TX.hero, 'sub', 'Párrafo debajo del título', true);
+
+  campoTx('txCosta', TX.costa, 'kicker', 'Etiqueta chica de arriba', false);
+  campoTx('txCosta', TX.costa, 'titulo', 'Título', false);
+  campoTx('txCosta', TX.costa, 'texto', 'Párrafo', true);
+
+  // los cuatro puntos: un campo por punto, en el idioma que esté puesto
+  const pts = txGet(TX.costa, 'puntos');
+  const lista = Array.isArray(pts) && pts.length ? [...pts] : ['','','',''];
+  while(lista.length < 4) lista.push('');
+  lista.slice(0,4).forEach((valor, i)=>{
+    const el = document.createElement('label');
+    el.className = 'f';
+    el.innerHTML = `<span>Punto ${i+1}</span><input maxlength="80">`;
+    const campo = el.querySelector('input');
+    campo.value = valor;
+    campo.oninput = ()=>{
+      const actual = [...lista];
+      actual[i] = campo.value;
+      lista[i] = campo.value;
+      txSet(TX.costa, 'puntos', actual.filter(x=> x.trim() !== ''));
+    };
+    $('txCosta').appendChild(el);
+  });
+
+  campoTx('txExtras', TX.extras, 'kicker', 'Etiqueta chica de arriba', false);
+  campoTx('txExtras', TX.extras, 'titulo', 'Título', false);
+  campoTx('txExtras', TX.extras, 'texto', 'Párrafo', true);
+
+  (EX || []).forEach((e, i)=>{
+    const caja = document.createElement('div');
+    caja.style.cssText = 'padding:14px 0;border-top:' + (i ? '1px solid var(--line)' : '0');
+    caja.innerHTML = `<label style="display:block;margin-bottom:12px">
+        <input type="checkbox" ${e.activo !== false ? 'checked' : ''}>Se muestra en la página</label>
+      <div class="grid g2"></div>`;
+    caja.querySelector('input[type=checkbox]').onchange = ev=> e.activo = ev.target.checked;
+    $('txLista').appendChild(caja);
+    const grid = caja.querySelector('.grid');
+
+    [['nombre','Nombre', false], ['texto','Descripción', true]].forEach(([k, etiqueta, largo])=>{
+      const el = document.createElement('label');
+      el.className = 'f';
+      el.innerHTML = `<span>${etiqueta}</span>${largo ? '<textarea maxlength="300"></textarea>' : '<input maxlength="40">'}`;
+      const campo = el.querySelector('textarea,input');
+      campo.value = txGet(e, k);
+      campo.oninput = ()=> txSet(e, k, campo.value);
+      grid.appendChild(el);
+    });
+  });
+}
+
+$('txTabs').querySelectorAll('button').forEach(b=> b.onclick = ()=>{
+  $('txTabs').querySelectorAll('button').forEach(x=> x.classList.remove('on'));
+  b.classList.add('on');
+  txLang = b.dataset.l;
+  pintarTextos();
+});
+
+$('guardarTextos').onclick = ()=> guardar({ textos: TX, extras: EX }, 'Textos guardados.');
 
 /* ============================================================
    Ajustes
@@ -999,6 +1359,305 @@ async function quitarFoto(slot){
     pintarFotos();
     flash('Volvió la foto de antes.');
   } catch(err){ flash(err.message, 'err'); }
+}
+
+/* ============================================================
+   Videos
+
+   Un clip del teléfono pesa 40 MB y viene en H.265 (solo se ve en iPhone),
+   así que el panel lo vuelve a grabar antes de subirlo: lo pinta cuadro por
+   cuadro en un canvas y lo graba con MediaRecorder a 1280 px de ancho. Eso
+   arregla de un golpe el peso, el códec y la duración — la grabación se corta
+   sola a los segundos permitidos. Tarda lo que dura el clip porque se reproduce
+   en tiempo real; no hay otra forma sin un servidor con ffmpeg.
+
+   Después va en pedazos: el cuerpo de una petición no pasa de 4.5 MB.
+   ============================================================ */
+const VID_ANCHO_MAX   = 1280;
+const VID_BITS        = 3200000;
+const VID_DIRECTO_MAX = 6 * 1024 * 1024;    // si ya viene chico y compatible, se sube tal cual
+const VID_TOTAL_MAX   = 24 * 1024 * 1024;
+const VID_PEDAZO      = 2 * 1024 * 1024;
+const VID_MIMES = ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+let videoEnCurso = null;
+
+const megas = b => (b / 1048576).toFixed(1).replace('.0', '') + ' MB';
+
+function pintarVideos(){
+  if($('vSeg')) $('vSeg').textContent = D.segMax || 7;
+  const puestos = D.videos || {};
+  const zonas = [];
+  for(const s of (D.slotsVideo || [])){
+    let z = zonas.find(x=> x.zona === s.zona);
+    if(!z){ z = { zona:s.zona, items:[] }; zonas.push(z); }
+    z.items.push(s);
+  }
+
+  $('videosLista').innerHTML = zonas.map(z=>`
+    <div class="zona">${esc(z.zona)}</div>
+    <div class="fotos">
+      ${z.items.map(s=>{
+        const v = puestos[s.id];
+        return `<div class="foto" data-slot="${s.id}">
+          <div class="im" style="aspect-ratio:${s.forma || '16/9'}">
+            ${v
+              ? `<video src="${v.src}"${v.poster ? ` poster="${v.poster}"` : ''} muted loop playsinline autoplay preload="metadata"></video>
+                 <span class="cambiada">Tuyo</span>`
+              : `<img src="/fotos/${s.foto}" alt="${esc(s.label)}" loading="lazy">
+                 <div class="sinvideo"><span>Sin video · se ve esta foto</span></div>`}
+          </div>
+          <div class="tx">
+            <b>${esc(s.label)}</b><small>${esc(s.nota)}</small>
+            ${v ? `<span class="dat">${(v.dur||0).toFixed(1)} s · ${megas(v.tam||0)}</span>` : ''}
+          </div>
+          <div class="barra"><i></i></div>
+          <div class="paso"></div>
+          <div class="bs">
+            <button class="btn sm" data-op="cambiar">${v ? 'Cambiar video' : 'Subir video'}</button>
+            ${v ? '<button class="btn sm ghost" data-op="quitar">Quitar</button>' : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+
+  $('videosLista').querySelectorAll('.foto').forEach(c=>{
+    c.querySelector('[data-op="cambiar"]').onclick = ()=> pedirVideo(c.dataset.slot);
+    const q = c.querySelector('[data-op="quitar"]');
+    if(q) q.onclick = ()=> quitarVideo(c.dataset.slot);
+  });
+}
+
+function pedirVideo(slot){
+  videoEnCurso = slot;
+  const inp = $('videoFile');
+  inp.value = '';   // sin esto, escoger dos veces el mismo archivo no dispara `change`
+  inp.click();
+}
+
+$('videoFile').onchange = async (e)=>{
+  const archivo = e.target.files?.[0];
+  const slot = videoEnCurso;
+  videoEnCurso = null;
+  if(!archivo || !slot) return;
+  await subirVideo(slot, archivo);
+};
+
+async function subirVideo(slot, archivo){
+  const tarjeta = $('videosLista').querySelector(`.foto[data-slot="${slot}"]`);
+  tarjeta?.classList.add('subiendo');
+  const paso = (txt, pct)=>{
+    const p = tarjeta?.querySelector('.paso'), b = tarjeta?.querySelector('.barra i');
+    if(p) p.textContent = txt;
+    if(b) b.style.width = Math.max(0, Math.min(100, pct)) + '%';
+  };
+
+  try {
+    paso('Revisando el video…', 3);
+    const info = await inspeccionarVideo(archivo);
+    const segMax = D.segMax || 7;
+
+    let blob = archivo;
+    const directo = archivo.size <= VID_DIRECTO_MAX
+                 && info.dur > 0 && info.dur <= segMax + 0.2
+                 && await videoCompatible(archivo);
+
+    if(!directo){
+      paso('Preparando el clip… no cierres esta pantalla', 6);
+      blob = await reencodearVideo(archivo, info, segMax, (p)=>{
+        paso('Preparando el clip… no cierres esta pantalla', 6 + p * 44);
+      });
+    }
+    if(blob.size > VID_TOTAL_MAX) throw new Error('Aun preparado el clip pesa demasiado. Manda uno más corto.');
+
+    paso('Sacando la portada…', 52);
+    const poster = await posterDeVideo(archivo, info);
+
+    paso('Subiendo…', 55);
+    const r = await mandarPedazos(slot, blob, {
+      dur: Math.min(info.dur || segMax, segMax),
+      w: info.w, h: info.h, poster,
+    }, (p)=> paso('Subiendo…', 55 + p * 44));
+
+    D.videos = { ...(D.videos || {}), [slot]: r.video };
+    pintarVideos();
+    flash(/webm/.test(r.video.tipo)
+      ? 'Listo. Quedó en WEBM: se ve en Android y en iPhone nuevos. Si lo subes desde tu iPhone queda en MP4, que se ve en todos.'
+      : 'Listo. El video ya se ve en la página.');
+  } catch(err){
+    tarjeta?.classList.remove('subiendo');
+    paso('', 0);
+    flash(err.message || 'No se pudo subir el video.', 'err');
+  }
+}
+
+async function quitarVideo(slot){
+  if(!confirm('¿Quitar este video? El hueco vuelve a enseñar la foto.')) return;
+  try {
+    await apiVideo('quitar', { slot });
+    const copia = { ...(D.videos || {}) };
+    delete copia[slot];
+    D.videos = copia;
+    pintarVideos();
+    flash('Video quitado. Volvió la foto.');
+  } catch(err){ flash(err.message, 'err'); }
+}
+
+/* Duración y tamaño reales del archivo, no los que diga el nombre. */
+function inspeccionarVideo(archivo){
+  return new Promise((ok, falla)=>{
+    const v = document.createElement('video');
+    v.preload = 'metadata'; v.muted = true; v.playsInline = true;
+    const url = URL.createObjectURL(archivo);
+    v.onloadedmetadata = ()=>{
+      const dur = Number.isFinite(v.duration) ? v.duration : 0;
+      const info = { dur, w: v.videoWidth || 0, h: v.videoHeight || 0 };
+      URL.revokeObjectURL(url);
+      if(!info.w) falla(new Error('Ese archivo no se puede leer como video en este navegador.'));
+      else ok(info);
+    };
+    v.onerror = ()=>{ URL.revokeObjectURL(url); falla(new Error('Ese archivo no se puede leer como video.')); };
+    v.src = url;
+  });
+}
+
+/* Subir tal cual solo si es MP4 o WEBM de verdad y no viene en H.265, que se
+   ve en iPhone y en ningún otro lado. */
+async function videoCompatible(archivo){
+  const b = new Uint8Array(await archivo.arrayBuffer());
+  const cuatro = (i)=> String.fromCharCode(b[i], b[i+1], b[i+2], b[i+3]);
+  const esMp4  = b.length > 12 && cuatro(4) === 'ftyp';
+  const esWebm = b.length > 4 && b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3;
+  if(!esMp4 && !esWebm) return false;
+  if(esMp4 && cuatro(8) === 'qt  ') return false;      // .mov de iPhone
+  return !contieneMarca(b, 'hvc1') && !contieneMarca(b, 'hev1');
+}
+
+function contieneMarca(b, marca){
+  const [a, c, d, e] = [...marca].map(x=> x.charCodeAt(0));
+  for(let i = 0; i + 3 < b.length; i++){
+    if(b[i] === a && b[i+1] === c && b[i+2] === d && b[i+3] === e) return true;
+  }
+  return false;
+}
+
+function mimeDeGrabacion(){
+  if(!window.MediaRecorder) return null;
+  return VID_MIMES.find(m=> MediaRecorder.isTypeSupported(m)) || null;
+}
+
+const par = n => (n % 2 ? n - 1 : n);   // los codificadores odian los lados impares
+
+async function reencodearVideo(archivo, info, segMax, onProg){
+  const mime = mimeDeGrabacion();
+  if(!mime || !HTMLCanvasElement.prototype.captureStream){
+    throw new Error('Este navegador no puede preparar videos. Ábrelo en Safari o en Chrome al día, o manda un clip de menos de 6 MB y ' + segMax + ' segundos.');
+  }
+
+  const v = document.createElement('video');
+  v.muted = true; v.playsInline = true; v.preload = 'auto';
+  const url = URL.createObjectURL(archivo);
+  v.src = url;
+  await new Promise((ok, falla)=>{
+    v.oncanplay = ok;
+    v.onerror = ()=> falla(new Error('No se pudo leer ese video.'));
+  });
+
+  const escala = Math.min(1, VID_ANCHO_MAX / (v.videoWidth || VID_ANCHO_MAX));
+  const cv = document.createElement('canvas');
+  cv.width  = Math.max(2, par(Math.round((v.videoWidth  || 1280) * escala)));
+  cv.height = Math.max(2, par(Math.round((v.videoHeight || 720)  * escala)));
+  const cx = cv.getContext('2d');
+
+  const rec = new MediaRecorder(cv.captureStream(30), { mimeType: mime, videoBitsPerSecond: VID_BITS });
+  const trozos = [];
+  rec.ondataavailable = (e)=>{ if(e.data && e.data.size) trozos.push(e.data); };
+  const grabado = new Promise((ok)=>{ rec.onstop = ok; });
+  rec.start(250);
+
+  const tope = Math.min(info.dur || segMax, segMax);
+  try {
+    await v.play();
+    /* El dibujo va con temporizador y no con requestAnimationFrame: si Robert
+       se cambia de app a media subida, rAF se congela y la grabación se queda
+       colgada para siempre. El temporizador se frena pero sigue avanzando. */
+    await new Promise((ok, falla)=>{
+      const limite = Date.now() + (tope * 3 + 15) * 1000;   // por si el video nunca avanza
+      v.onerror = ()=> { clearInterval(reloj); falla(new Error('Se cortó la lectura del video.')); };
+      const reloj = setInterval(()=>{
+        if(v.ended || v.currentTime >= tope || Date.now() > limite){ clearInterval(reloj); ok(); return; }
+        cx.drawImage(v, 0, 0, cv.width, cv.height);
+        onProg(Math.min(1, v.currentTime / tope));
+      }, 33);
+    });
+  } finally {
+    v.pause();
+    rec.stop();
+  }
+  await grabado;
+  URL.revokeObjectURL(url);
+
+  const salida = new Blob(trozos, { type: mime.split(';')[0] });
+  if(!salida.size) throw new Error('No se pudo preparar el clip. Intenta con otro.');
+  return salida;
+}
+
+/* iOS enseña un cuadro negro hasta que decide cargar el video: sin portada el
+   hueco se ve vacío los primeros segundos. */
+async function posterDeVideo(archivo, info){
+  try {
+    const v = document.createElement('video');
+    v.muted = true; v.playsInline = true; v.preload = 'auto';
+    const url = URL.createObjectURL(archivo);
+    v.src = url;
+    await new Promise((ok, falla)=>{ v.oncanplay = ok; v.onerror = falla; });
+    await new Promise((ok)=>{
+      v.onseeked = ok;
+      v.currentTime = Math.min(0.2, (info.dur || 1) / 2);
+      setTimeout(ok, 2500);   // algunos navegadores no disparan `seeked` con el primer cuadro
+    });
+    const escala = Math.min(1, VID_ANCHO_MAX / (v.videoWidth || VID_ANCHO_MAX));
+    const cv = document.createElement('canvas');
+    cv.width  = Math.max(2, Math.round((v.videoWidth  || 1280) * escala));
+    cv.height = Math.max(2, Math.round((v.videoHeight || 720)  * escala));
+    cv.getContext('2d').drawImage(v, 0, 0, cv.width, cv.height);
+    URL.revokeObjectURL(url);
+    return cv.toDataURL('image/jpeg', 0.75);
+  } catch(e){ return ''; }   // sin portada se sube igual
+}
+
+async function mandarPedazos(slot, blob, extra, onProg){
+  const uid = [...crypto.getRandomValues(new Uint8Array(6))].map(b=> b.toString(16).padStart(2,'0')).join('');
+  const partes = Math.ceil(blob.size / VID_PEDAZO);
+  if(partes > 40) throw new Error('El video pesa demasiado. Manda uno más corto.');
+
+  for(let i = 0; i < partes; i++){
+    const b64 = await aBase64(blob.slice(i * VID_PEDAZO, (i + 1) * VID_PEDAZO));
+    await apiVideo('parte', { uid, i, b64 });
+    onProg((i + 1) / partes);
+  }
+  return apiVideo('fin', { slot, uid, partes, ...extra });
+}
+
+function aBase64(pedazo){
+  return new Promise((ok, falla)=>{
+    const fr = new FileReader();
+    fr.onload = ()=> ok(String(fr.result).split(',')[1] || '');
+    fr.onerror = ()=> falla(new Error('No se pudo leer el video.'));
+    fr.readAsDataURL(pedazo);
+  });
+}
+
+async function apiVideo(accion, cuerpo){
+  const r = await fetch('/api/video?accion=' + accion, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-gs-token': TOKEN },
+    body: JSON.stringify(cuerpo),
+  });
+  let c = {};
+  try { c = await r.json(); } catch {}
+  if(r.status === 401){ salir(); throw new Error('Sesión expirada.'); }
+  if(!r.ok) throw new Error(c.error || 'No se pudo guardar el video.');
+  return c;
 }
 
 /* ============================================================

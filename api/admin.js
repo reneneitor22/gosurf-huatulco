@@ -1,6 +1,7 @@
 import {
   read, update, json, leerBody, crearToken, tokenValido,
-  hoyISO, esISO, limpiar, clamp, soloDigitos, diasOcupados, FOTOS, fotoURL,
+  hoyISO, esISO, limpiar, clamp, soloDigitos, diasOcupados, sumarDias, FOTOS, fotoURL,
+  VIDEOS, VIDEO_SEG_MAX, videosPublicos,
 } from '../lib/db.js';
 
 const ESTADOS = ['pendiente', 'pagada', 'cancelada', 'completada'];
@@ -43,6 +44,9 @@ export default async function handler(req, res) {
         // el panel solo necesita saber cuáles cambió y dónde verlas
         fotos: Object.fromEntries(Object.entries(actual.fotos || {}).map(([k, v]) => [k, fotoURL(k, v)])),
         slots: FOTOS,
+        videos: videosPublicos(actual),
+        slotsVideo: VIDEOS,
+        segMax: VIDEO_SEG_MAX,
         hoy: hoyISO(),
         ocupados: Object.fromEntries(diasOcupados(actual)),
         mpConfigurado: Boolean(process.env.MP_ACCESS_TOKEN),
@@ -68,7 +72,7 @@ export default async function handler(req, res) {
         }
 
         if (p.servicios) {
-          for (const k of ['trip', 'guia']) {
+          for (const k of ['trip', 'guia', 'lancha']) {
             const s = p.servicios[k];
             if (!s) continue;
             const dest = data.servicios[k];
@@ -138,6 +142,47 @@ export default async function handler(req, res) {
           };
         }
 
+        /* Extras (masaje, hospedaje, carro, pesca, yoga): sin precio, solo
+           nombre y texto por idioma. Se guardan sobre los que ya existen para
+           no perder uno si el panel manda la lista incompleta. */
+        if (Array.isArray(p.extras)) {
+          for (const e of p.extras.slice(0, 12)) {
+            const dest = data.extras.find((x) => x.id === e.id);
+            if (!dest) continue;
+            if (e.activo !== undefined) dest.activo = !!e.activo;
+            dest.nombre = limpiar(e.nombre, 40) || dest.nombre;
+            dest.texto = limpiar(e.texto, 300) || dest.texto;
+            for (const k of ['en', 'fr', 'pt']) {
+              const tr = e.i18n?.[k] || {};
+              dest.i18n[k] = {
+                nombre: limpiar(tr.nombre, 40) || dest.i18n[k].nombre,
+                texto: limpiar(tr.texto, 300) || dest.i18n[k].texto,
+              };
+            }
+          }
+        }
+
+        /* Textos largos de la página. Cada bloque trae los mismos campos en
+           los cuatro idiomas; lo que llegue vacío conserva lo de antes. */
+        if (p.textos) {
+          for (const [bloque, val] of Object.entries(p.textos)) {
+            const dest = data.textos[bloque];
+            if (!dest || !val) continue;
+            const campos = (origen, destino) => {
+              for (const campo of ['kicker', 'titulo', 'sub', 'texto']) {
+                if (destino[campo] === undefined || origen[campo] === undefined) continue;
+                destino[campo] = limpiar(origen[campo], campo === 'kicker' ? 40 : 400) || destino[campo];
+              }
+              if (Array.isArray(destino.puntos) && Array.isArray(origen.puntos)) {
+                const pts = origen.puntos.map((x) => limpiar(x, 80)).filter(Boolean);
+                if (pts.length) destino.puntos = pts.slice(0, 6);
+              }
+            };
+            campos(val, dest);
+            for (const k of ['en', 'fr', 'pt']) if (val.i18n?.[k]) campos(val.i18n[k], dest.i18n[k]);
+          }
+        }
+
         if (p.reglas) {
           data.reglas = {
             maxPax: clamp(p.reglas.maxPax, 1, 40, data.reglas.maxPax),
@@ -184,22 +229,37 @@ export default async function handler(req, res) {
       return json(res, 200, r);
     }
 
-    /* ---- bloquear / desbloquear días a mano ---- */
+    /* ---- bloquear / desbloquear días a mano ----
+       Acepta un día suelto (`fecha`) o un rango (`desde`/`hasta`), que es lo
+       que necesita Robert cuando se va una semana: sin rango tendría que
+       tocar día por día. El rango se recorre entero en una sola escritura. */
     if (accion === 'bloqueo') {
-      const fecha = String(body.fecha || '');
       const op = body.op === 'quitar' ? 'quitar' : 'poner';
-      if (!esISO(fecha)) return json(res, 400, { error: 'Fecha inválida.' });
+      const desde = String(body.desde || body.fecha || '');
+      const hasta = String(body.hasta || body.fecha || desde || '');
+      if (!esISO(desde) || !esISO(hasta)) return json(res, 400, { error: 'Fecha inválida.' });
+      const ini = desde <= hasta ? desde : hasta;
+      const fin = desde <= hasta ? hasta : desde;
+
+      const fechas = [];
+      for (let f = ini; f <= fin && fechas.length < 400; f = sumarDias(f, 1)) fechas.push(f);
+      if (!fechas.length) return json(res, 400, { error: 'Rango vacío.' });
+
       const r = await update((data) => {
-        const i = data.bloqueos.findIndex((b) => b.fecha === fecha);
-        if (op === 'quitar') {
-          if (i >= 0) data.bloqueos.splice(i, 1);
-          return { ok: true, fecha, bloqueado: false };
-        }
         const nota = limpiar(body.nota, 60);
-        if (i >= 0) data.bloqueos[i].nota = nota;
-        else data.bloqueos.push({ fecha, nota, puesta: Date.now() });
+        let tocados = 0;
+        for (const fecha of fechas) {
+          const i = data.bloqueos.findIndex((b) => b.fecha === fecha);
+          if (op === 'quitar') {
+            if (i >= 0) { data.bloqueos.splice(i, 1); tocados++; }
+            continue;
+          }
+          if (i >= 0) data.bloqueos[i].nota = nota;
+          else data.bloqueos.push({ fecha, nota, puesta: Date.now() });
+          tocados++;
+        }
         data.bloqueos.sort((a, b) => a.fecha.localeCompare(b.fecha));
-        return { ok: true, fecha, bloqueado: true };
+        return { ok: true, desde: ini, hasta: fin, dias: fechas.length, tocados, bloqueado: op === 'poner' };
       });
       return json(res, 200, r);
     }

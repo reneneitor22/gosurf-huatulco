@@ -10,12 +10,9 @@
  * cómo esté configurado. El `v` de la URL cambia con cada subida, por eso se
  * puede cachear para siempre y aun así el cambio se ve al instante.
  */
-import { put, get, del } from '@vercel/blob';
 import crypto from 'node:crypto';
 import { read, update, json, leerBody, tokenValido, FOTOS, FOTO_IDS, fotoURL } from '../lib/db.js';
-
-const SIN_BLOB = !process.env.BLOB_READ_WRITE_TOKEN;
-const DIR_LOCAL = `${process.env.TMPDIR || '/tmp'}/gosurf-fotos`;
+import { guardarBytes, leerBytes, borrarBytes } from '../lib/archivos.js';
 
 const TIPOS = {
   'image/jpeg': 'jpg',
@@ -25,52 +22,7 @@ const TIPOS = {
 
 const MAX_BYTES = 4 * 1024 * 1024;   // el cuerpo de una función de Vercel tope 4.5 MB
 
-/* Sin store (desarrollo local) las fotos van a una carpeta temporal.
-   Mismo contrato de `key` para que el resto del código no note la diferencia. */
-async function guardarBytes(key, bytes, contentType) {
-  if (!SIN_BLOB) {
-    const r = await put(key, bytes, {
-      access: 'private',
-      contentType,
-      allowOverwrite: true,
-      cacheControlMaxAge: 31536000,
-    });
-    return r.url || null;
-  }
-  const fs = await import('node:fs/promises');
-  const path = await import('node:path');
-  const destino = path.join(DIR_LOCAL, key.replace(/\//g, '_'));
-  await fs.mkdir(DIR_LOCAL, { recursive: true });
-  await fs.writeFile(destino, bytes);
-  return null;
-}
-
-async function leerBytes(key) {
-  if (!SIN_BLOB) {
-    const res = await get(key, { access: 'private', useCache: false });
-    if (!res || res.statusCode !== 200) return null;
-    const buf = Buffer.from(await new Response(res.stream).arrayBuffer());
-    return { bytes: buf, contentType: res.blob?.contentType || 'image/jpeg' };
-  }
-  const fs = await import('node:fs/promises');
-  const path = await import('node:path');
-  try {
-    const bytes = await fs.readFile(path.join(DIR_LOCAL, key.replace(/\//g, '_')));
-    return { bytes, contentType: key.endsWith('.png') ? 'image/png' : key.endsWith('.webp') ? 'image/webp' : 'image/jpeg' };
-  } catch { return null; }
-}
-
-async function borrarBytes(meta) {
-  if (!meta) return;
-  try {
-    if (!SIN_BLOB) await del(meta.url || meta.key);
-    else {
-      const fs = await import('node:fs/promises');
-      const path = await import('node:path');
-      await fs.unlink(path.join(DIR_LOCAL, meta.key.replace(/\//g, '_')));
-    }
-  } catch { /* si no se pudo borrar la vieja, no pasa nada: ya nadie la usa */ }
-}
+/* Guardar/leer/borrar viven en lib/archivos.js: los videos usan lo mismo. */
 
 /** El navegador puede mentir en el `data:`; el tipo real sale de los primeros bytes. */
 function tipoReal(buf) {

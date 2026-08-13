@@ -174,6 +174,9 @@ header.nav .lang button.on span{color:#3D4941}
 .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;overflow:visible;color:#FBF7EF}
 .hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden;background:var(--sage-d)}
 .hero-bg img{width:100%;height:112%;object-fit:cover;will-change:transform}
+/* el clip de portada se monta encima de la foto: si el telefono no lo deja
+   reproducir (modo de bajo consumo), abajo sigue estando la foto de siempre */
+.hero-bg video{position:absolute;inset:0;width:100%;height:112%;object-fit:cover;will-change:transform}
 .hero-bg::after{
   content:"";position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(43,52,45,.52) 0%,rgba(43,52,45,.3) 34%,rgba(43,52,45,.56) 70%,rgba(61,73,65,.88) 100%);
@@ -317,6 +320,7 @@ h2 em{font-style:normal;color:var(--acc)}
 .shot{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--sand)}
 .shot img{width:100%;height:100%;object-fit:cover;transition:transform 1s var(--ease)}
 .shot:hover img{transform:scale(1.05)}
+.shot video{width:100%;height:100%;object-fit:cover;display:block;background:var(--sand)}
 .shot .ui{position:absolute;inset:0;z-index:2;display:flex;align-items:flex-end;padding:16px;
   background:linear-gradient(180deg,transparent 45%,rgba(43,52,45,.72))}
 .shot .ui b{font-family:var(--mono);font-weight:500;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#FBF7EF}
@@ -533,29 +537,99 @@ h2 em{font-style:normal;color:var(--acc)}
 .pv .im{position:relative;overflow:hidden;min-height:220px}
 .pv .im img{width:100%;height:100%;object-fit:cover}
 
-/* ---------- OLAS ---------- */
-.waves{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
-.waves figure{position:relative;overflow:hidden;aspect-ratio:4/5;background:var(--sand)}
-.waves figure:first-child{grid-column:span 2;aspect-ratio:8/5}
-.waves img{width:100%;height:100%;object-fit:cover;transition:transform 1.1s var(--ease)}
-.waves figure:hover img{transform:scale(1.045)}
-.waves figcaption{
-  position:absolute;left:0;bottom:0;right:0;padding:16px 18px;color:#F3F6EF;
-  background:linear-gradient(0deg,rgba(43,52,45,.72),transparent);
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+/* ---------- LA COSTA (bloque místico) ----------
+   Una sola foto a pantalla completa, dos capas de niebla encima y el texto muy
+   espaciado. La niebla se mueve lentísimo; con reduced-motion se queda quieta.
+   El velo va aparte de la foto porque la foto se mueve con el parallax. */
+.myst{position:relative;isolation:isolate;overflow:hidden;min-height:min(92vh,860px);display:grid;align-items:end;
+  padding-block:clamp(90px,16vh,180px);background:#1D2620}
+.myst-bg{position:absolute;inset:-6% 0;z-index:0}
+.myst-bg img{width:100%;height:100%;object-fit:cover;filter:saturate(.72) contrast(1.04) brightness(.72);will-change:transform}
+.myst-veil{
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(120% 80% at 50% 0%,rgba(29,38,32,0) 20%,rgba(29,38,32,.55) 100%),
+    linear-gradient(180deg,rgba(29,38,32,.72) 0%,rgba(29,38,32,.25) 38%,rgba(29,38,32,.9) 100%);
 }
+/* la bruma: una franja clarísima que sube y baja sin parar */
+.myst-veil::after{
+  content:"";position:absolute;left:-10%;right:-10%;top:18%;height:52%;
+  background:linear-gradient(180deg,rgba(237,239,233,0),rgba(237,239,233,.14) 45%,rgba(237,239,233,0));
+  filter:blur(26px);animation:bruma 22s var(--ease) infinite alternate;
+}
+@keyframes bruma{from{transform:translateY(-7%) scaleY(1)}to{transform:translateY(9%) scaleY(1.25)}}
+@media (prefers-reduced-motion:reduce){.myst-veil::after{animation:none}}
+.myst-in{position:relative;z-index:2}
+.myst .kicker{color:rgba(241,243,236,.6)}
+.myst h2{max-width:14ch;margin-bottom:22px;text-shadow:0 2px 30px rgba(20,26,22,.5)}
+.myst p{font-size:clamp(15px,1.5vw,17.5px);font-weight:300;line-height:1.75;color:rgba(241,243,236,.82);max-width:52ch}
+.myst-pts{
+  list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:clamp(38px,6vw,62px);
+  border-top:1px solid rgba(241,243,236,.22);
+}
+.myst-pts li{
+  padding:20px 20px 4px 0;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  line-height:1.75;color:rgba(241,243,236,.88);position:relative;
+}
+.myst-pts li::before{
+  content:"";position:absolute;left:0;top:-1px;width:26px;height:1px;background:rgba(241,243,236,.75);
+}
+@media(max-width:860px){
+  .myst{min-height:auto}
+  .myst-pts{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  .myst-pts{grid-template-columns:1fr;gap:0}
+  .myst-pts li{padding:16px 0 2px}
+  .myst-pts li+li{border-top:1px solid rgba(241,243,236,.14)}
+}
+
+/* ---------- SURF TRIP EN LANCHA ---------- */
+.boat{
+  display:grid;grid-template-columns:1.5fr .8fr;gap:2px;align-items:stretch;margin-top:2px;
+  border:1px solid var(--line);background:var(--bone);
+}
+.boat .t{padding:clamp(24px,3vw,38px)}
+.boat .ph{font-family:var(--mono);font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--fg-3);display:block;margin-bottom:14px}
+.boat h3{font-family:var(--disp);font-weight:300;text-transform:uppercase;font-size:clamp(21px,2.6vw,31px);letter-spacing:.05em;line-height:1.1;margin-bottom:14px}
+.boat p{font-size:14.5px;font-weight:300;line-height:1.75;color:var(--fg-2);max-width:52ch}
+.boat .v{
+  background:var(--sage-d);color:#F1F3EC;padding:clamp(22px,3vw,34px);
+  display:flex;flex-direction:column;justify-content:center;gap:12px;
+}
+.boat .v .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:rgba(241,243,236,.55)}
+.boat .v .n{font-family:var(--disp);font-weight:300;font-size:clamp(24px,3vw,36px);letter-spacing:.03em;line-height:1}
+.boat .v .n small{font-size:11px;letter-spacing:.14em;margin-left:6px;color:rgba(241,243,236,.6)}
+.boat .v p{font-size:12.5px;line-height:1.7;color:rgba(241,243,236,.7);max-width:34ch}
+
+/* ---------- EXTRAS (sin precio) ---------- */
+.sec.sand{background:var(--sand)}
+.extras{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.extras .ex{
+  background:var(--bone);border:1px solid var(--line);padding:clamp(22px,2.6vw,30px);
+  display:flex;flex-direction:column;gap:12px;transition:.3s var(--ease);
+}
+.extras .ex:hover{background:var(--cream);transform:translateY(-2px)}
+.extras .ex .no{font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;color:var(--fg-3)}
+.extras .ex h4{font-family:var(--disp);font-weight:300;text-transform:uppercase;font-size:clamp(18px,2vw,23px);letter-spacing:.05em;line-height:1.15}
+.extras .ex p{font-size:14px;font-weight:300;line-height:1.7;color:var(--fg-2);flex:1}
+.extras .ex .go{
+  display:flex;align-items:center;gap:8px;width:fit-content;margin-top:4px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--fg);
+  border-bottom:1px solid var(--line-2);padding-bottom:5px;transition:.25s;
+}
+.extras .ex .go:hover{color:var(--sage);border-bottom-color:var(--sage)}
 
 @media(max-width:860px){
   .pv{grid-template-columns:1fr}
   .pv .im{min-height:200px;order:-1}
-  .waves{grid-template-columns:1fr 1fr}
-  .waves figure:first-child{grid-column:span 2}
+  .boat{grid-template-columns:1fr}
+  .extras{grid-template-columns:1fr 1fr}
 }
 @media(max-width:520px){
   .cal-d{min-height:34px;font-size:13px}
   .cal-grid{gap:1px;padding:4px 6px 10px}
-  .waves{grid-template-columns:1fr}
-  .waves figure,.waves figure:first-child{grid-column:span 1;aspect-ratio:4/3}
+  .extras{grid-template-columns:1fr}
   /* con cuatro idiomas el selector ya no cabe junto al CTA y la hamburguesa */
   .lang button{padding:7px 6px;font-size:9.5px}
 }
@@ -802,6 +876,17 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
         <a href="#reserva" class="btn btn-primary" data-i18n="pricecta">Reservar</a>
       </div>
     </div>
+
+    <!-- Surf trip en lancha: se llega por mar. El precio lo pone Robert desde
+         el panel; mientras esté en cero, la tarjeta lo dice y manda a WhatsApp. -->
+    <div class="boat rv" id="boatBox">
+      <div class="t">
+        <span class="ph" data-i18n="boatk">Por mar</span>
+        <h3 data-i18n="boath">Surf trip en lancha</h3>
+        <p data-i18n="boatp">Los picos a los que no se llega por tierra se llegan por agua. Salimos en lancha con pescadores de aquí, con la misma comida, sombra y guía del trip completo.</p>
+      </div>
+      <div class="v" id="boatPrecio"></div>
+    </div>
   </div>
 </section>
 
@@ -840,24 +925,20 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
   <div class="cap" data-i18n="band2">Nopal, piedra y swell · Oaxaca</div>
 </div>
 
-<!-- ================= LAS OLAS ================= -->
-<section class="sec" id="olas">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="l">
-        <span class="kicker" data-i18n="eb9">Las olas</span>
-        <h2 data-i18n="h2j">Por esto<br><em>se viene.</em></h2>
-        <p data-i18n="sub9">Derechas largas de point, beach breaks que rompen todo el año y reefs que solo entran con la marea justa. Swell del sur casi todo el verano y muy poca gente en el agua.</p>
-      </div>
-      <div class="r mono" data-i18n="olasr">Swell del sur<br>casi todo el año</div>
-    </div>
-    <div class="waves rv">
-      <figure><img src="fotos/hero.jpg" alt="Ola rompiendo bajo la loma en la costa de Oaxaca" loading="lazy"><figcaption data-i18n="w1">Pared limpia con swell del sur</figcaption></figure>
-      <figure><img src="fotos/barrel.jpg" alt="Surfista dentro del tubo" loading="lazy"><figcaption data-i18n="w2">Secciones de tubo</figcaption></figure>
-      <figure><img src="fotos/ridge.jpg" alt="Surfistas bajando la loma hacia el pico al atardecer" loading="lazy"><figcaption data-i18n="w3">Bajada al pico, tarde</figcaption></figure>
-      <figure><img src="fotos/turn.jpg" alt="Maniobra en la pared de la ola" loading="lazy"><figcaption data-i18n="w4">Pared para maniobrar</figcaption></figure>
-      <figure><img src="fotos/verde-2.jpg" alt="Surfistas caminando entre el monte verde sobre el mar" loading="lazy"><figcaption data-i18n="w5">Monte verde y agua azul</figcaption></figure>
-    </div>
+<!-- ================= LA COSTA (bloque místico) =================
+     Antes aquí iba una galería de cinco olas. Robert la quitó: una sola foto
+     de la costa, cuatro puntos y nada más. Lo "místico" no es un filtro: es
+     una sola imagen grande, niebla encima y texto muy espaciado sobre oscuro. -->
+<section class="myst dark" id="olas">
+  <div class="myst-bg">
+    <img src="fotos/costline.jpg" alt="La costa de Oaxaca desde el monte, al amanecer" data-par="0.07">
+  </div>
+  <div class="myst-veil" aria-hidden="true"></div>
+  <div class="wrap myst-in">
+    <span class="kicker rv" id="mystKicker" data-i18n="eb9">La costa</span>
+    <h2 class="rv" id="mystTitulo" data-i18n="h2j">Donde el monte se acaba.</h2>
+    <p class="rv" id="mystTexto" data-i18n="sub9">Kilómetros de costa sin nombre, con niebla en la mañana y nadie más en el agua. El pico del día lo decide el mar.</p>
+    <ul class="myst-pts rv" id="mystPts"></ul>
   </div>
 </section>
 
@@ -905,6 +986,24 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
       <div><b data-i18n="f2t">Los archivos son tuyos</b><p data-i18n="f2p">Te los entrega para que los uses donde quieras.</p></div>
       <div><b data-i18n="f3t">Va aparte del trip</b><p data-i18n="f3p">No entra en la tarifa de surf. Se suma al desglose cuando lo agregas.</p></div>
     </div>
+  </div>
+</section>
+
+<!-- ================= EXTRAS (sin precio, por WhatsApp) =================
+     Masaje, hospedaje, renta de carro, pesca y yoga. No se cobran aquí: cada
+     tarjeta abre el chat con el mensaje ya escrito. La lista y los textos los
+     edita Robert en el panel; esto es solo el respaldo. -->
+<section class="sec sand" id="extras">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="l">
+        <span class="kicker" id="exKicker" data-i18n="eb10">Fuera del agua</span>
+        <h2 id="exTitulo" data-i18n="h2k">Lo demás también lo resuelve.</h2>
+        <p id="exTexto" data-i18n="sub10">Nada de esto se cobra en la página: le escribes por WhatsApp, te dice precio y lo arregla con su gente.</p>
+      </div>
+      <div class="r mono" data-i18n="exr">Sin precio en línea<br>se ve por WhatsApp</div>
+    </div>
+    <div class="extras rv" id="extrasGrid"></div>
   </div>
 </section>
 
@@ -1056,7 +1155,7 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
           <div id="sumLines"></div>
           <div class="sum-total">
             <span class="lbl" data-i18n="sumtot">Total estimado</span>
-            <b>$<span id="sumTotal">0</span><small>MXN</small></b>
+            <b id="sumTotalBox">$<span id="sumTotal">0</span><small>MXN</small></b>
           </div>
           <div id="discBox"></div>
           <p class="sum-note" id="sumNote"></p>
@@ -1159,6 +1258,11 @@ const CONFIG = {
    la página igual se pinta con precios correctos, solo que sin
    los cambios que él haya hecho.
    ============================================================ */
+
+/* Clips que subió Robert: { hero:{src,poster}, 'film-1':… }. Nace vacío a
+   propósito — sin videos la página se ve exactamente como antes. */
+let VIDS = {};
+
 let CFG = {
   negocio:{
     // wa.me: 52 + lada + número, SIN el "1" extra (ese "1" rompe el link)
@@ -1170,7 +1274,10 @@ let CFG = {
       {min:1,max:1,precio:4000},{min:2,max:2,precio:3600},{min:3,max:3,precio:3000},{min:4,max:99,precio:2500}] },
     guia:{ activo:true, provisional:true, tiers:[
       {min:1,max:1,precio:2500},{min:2,max:2,precio:2200},{min:3,max:3,precio:1800},{min:4,max:99,precio:1500}] },
-    lessons:{ activo:true, provisional:true, precio:1200, mesInicio:12, mesFin:2 }
+    lessons:{ activo:true, provisional:true, precio:1200, mesInicio:12, mesFin:2 },
+    // Lancha: nace en cero = "precio por confirmar" hasta que Robert lo ponga
+    lancha:{ activo:true, provisional:true, tiers:[
+      {min:1,max:1,precio:0},{min:2,max:2,precio:0},{min:3,max:3,precio:0},{min:4,max:99,precio:0}] }
   },
   filmacion:{ activo:true, provisional:false, maxSesiones:10,
     opciones:[{id:'f4',horas:4,precio:2000},{id:'f6',horas:6,precio:2500}] },
@@ -1198,7 +1305,12 @@ let CFG = {
            horario:'Sábados e domingos · 12h30 às 19h',
            texto:'O Robert também tem o próprio beach club, e ele abre justamente nos fins de semana. Depois da sessão o trip continua lá: comida, bebida e o mar na frente. Pergunte a ele o que entra no seu.' } } },
   reglas:{ maxPax:12, maxDias:14, diasVista:180, holdMin:20 },
-  pagoActivo:false
+  /* Sin precio mientras Robert no lo ponga desde el panel: en cero, la página
+     lo enseña como "por confirmar" y manda a WhatsApp en vez de cobrar. */
+  pagoActivo:false,
+  /* extras y textos llegan del panel; vacíos = se usan los de I18N */
+  extras:null,
+  textos:null
 };
 
 /* Días que ya están apartados (pagados, con hold, o bloqueados por Robert).
@@ -1263,11 +1375,25 @@ const I18N = {
     costat:'México continental',
     costap:'“Siempre con ganas de mostrarte nuestra cultura y lo bonito del México continental.” — Robert',
     band2:'El camino al pico · última luz',
-    eb9:'Las olas',h2j:'Por esto<br><em>se viene.</em>',
-    sub9:'Derechas largas de point, beach breaks que rompen todo el año y reefs que solo entran con la marea justa. Swell del sur casi todo el verano y muy poca gente en el agua.',
-    olasr:'Swell del sur<br>casi todo el año',
-    w1:'Pared limpia con swell del sur',w2:'Secciones de tubo',w3:'Bajada al pico, tarde',
-    w4:'Pared para maniobrar',w5:'Monte verde y agua azul',
+    eb9:'La costa',h2j:'Donde el monte se acaba.',
+    sub9:'Kilómetros de costa sin nombre, con niebla en la mañana y nadie más en el agua. El pico del día lo decide el mar.',
+    mystpts:['Swell del sur casi todo el año','Derechas largas, beach breaks y reef','Muy poca gente en el agua','El pico se escoge la misma mañana'],
+    eb10:'Fuera del agua',h2k:'Lo demás también lo resuelve.',
+    sub10:'Nada de esto se cobra en la página: le escribes por WhatsApp, te dice precio y lo arregla con su gente.',
+    exr:'Sin precio en línea<br>se ve por WhatsApp',
+    ex_cta:'Preguntar por WhatsApp',
+    extras:[
+      ['Masaje','Masaje después de la sesión, con terapeuta de confianza. Se agenda por WhatsApp.'],
+      ['Hospedaje','Dile cuántos días vienes y Robert te ayuda a encontrar dónde quedarte cerca de los picos.'],
+      ['Renta de carro','Si quieres moverte por tu cuenta, él te consigue la renta con quien ya conoce.'],
+      ['Pesca','Salida de pesca con pescadores de aquí, los días que el mar no está para surfear.'],
+      ['Clases de yoga','Clases de yoga para estirar antes o después del agua. Individuales o para el grupo.']
+    ],
+    boatk:'Por mar',boath:'Surf trip en lancha',
+    boatp:'Los picos a los que no se llega por tierra se llegan por agua. Salimos en lancha con pescadores de aquí, con la misma comida, sombra y guía del trip completo.',
+    boat_lbl:'Por persona / día',boat_falta:'Precio por confirmar',
+    boat_note:'Robert todavía está cerrando el precio de la lancha. Escríbele y te lo pasa.',
+    boat_cta:'Preguntar el precio',
     pv_k:'Pura vida',pv_cta:'Preguntarle a Robert',pv_abre:'Abre',pv_donde:'Dónde',
     eb3:'Filmación',h2d:'Robert también<br><em>carga la cámara.</em>',
     sub3:'Además de guía, Robert trabaja como filmer en la industria del surf. La filmación se cobra por sesión, aparte de la tarifa del trip, y la puedes agregar al reservar.',
@@ -1292,6 +1418,7 @@ const I18N = {
     sv_trip:'Surf trip completo',sv_tripd:'El paquete de Robert: transportación, sesiones todo el día, guía certificado, sombra, comida y botiquín.',
     sv_guia:'Solo guía — traigo carro',sv_guiad:'Tú manejas, Robert te lleva a los picos correctos y te cuida el agua. Sin transportación.',
     sv_lessons:'Surf lessons',sv_lessonsd:'Clases para empezar de cero o corregir lo que traes mal.',
+    sv_lancha:'Surf trip en lancha',sv_lanchad:'Salimos por mar a los picos sin acceso por tierra. Precio por confirmar: se cierra por WhatsApp.',
     sv_soloen:'Solo de {a} a {b}',sv_fuera:'Fuera de temporada para la fecha que escojas.',
     sv_prov:'Precio por confirmar',
     filmopt:'Quiero que Robert filme mis sesiones',filmoptd:'Se cobra por sesión, no por persona. Los archivos son tuyos.',
@@ -1394,11 +1521,25 @@ const I18N = {
     costat:'Mainland Mexico',
     costap:'“Always looking forward to show you our culture and the beauty of mainland Mexico.” — Robert',
     band2:'The walk in · last light',
-    eb9:'The waves',h2j:'This is<br><em>why you come.</em>',
-    sub9:'Long right hand points, beach breaks that work all year and reefs that only turn on with the right tide. South swell most of the summer and very few people out.',
-    olasr:'South swell<br>most of the year',
-    w1:'Clean wall on a south swell',w2:'Barrel sections',w3:'Walking down to the peak, late',
-    w4:'A wall to turn on',w5:'Green hills, blue water',
+    eb9:'The coast',h2j:'Where the hills run out.',
+    sub9:'Miles of unnamed coast, fog in the morning and nobody else in the water. The ocean picks the break of the day.',
+    mystpts:['South swell most of the year','Long rights, beach breaks and reef','Very few people out','The break is called that same morning'],
+    eb10:'Out of the water',h2k:'He sorts the rest too.',
+    sub10:'None of this is charged on the site: you message him on WhatsApp, he gives you the price and arranges it with his people.',
+    exr:'No price online<br>sorted on WhatsApp',
+    ex_cta:'Ask on WhatsApp',
+    extras:[
+      ['Massage','A massage after the session, with a therapist we trust. Booked over WhatsApp.'],
+      ['Where to stay','Tell him how many days you are coming and Robert helps you find a place close to the breaks.'],
+      ['Car rental','If you want to move around on your own, he sorts the rental with people he already knows.'],
+      ['Fishing','A fishing trip with local fishermen, for the days the ocean is not for surfing.'],
+      ['Yoga classes','Yoga to stretch out before or after the water. One on one or for the whole group.']
+    ],
+    boatk:'By sea',boath:'Surf trip by boat',
+    boatp:'The breaks you cannot reach by land, you reach by water. We head out on a panga with local fishermen, with the same food, shade and guide as the full trip.',
+    boat_lbl:'Per person / day',boat_falta:'Price to be confirmed',
+    boat_note:'Robert is still closing the price for the boat trip. Message him and he will send it to you.',
+    boat_cta:'Ask for the price',
     pv_k:'Pura vida',pv_cta:'Ask Robert directly',pv_abre:'Open',pv_donde:'Where',
     eb3:'Filming',h2d:'Robert also<br><em>carries the camera.</em>',
     sub3:'Besides guiding, Robert works as a filmer in the surf industry. Filming is charged per session, on top of the trip rate, and you can add it when you book.',
@@ -1423,6 +1564,7 @@ const I18N = {
     sv_trip:'Full surf trip',sv_tripd:'Robert’s package: transport, all-day sessions, certified guide, shade, food and first aid kit.',
     sv_guia:'Guide only — I bring a car',sv_guiad:'You drive, Robert takes you to the right breaks and watches the water. No transport.',
     sv_lessons:'Surf lessons',sv_lessonsd:'Lessons to start from zero or fix what you are doing wrong.',
+    sv_lancha:'Surf trip by boat',sv_lanchad:'We head out by sea to the breaks with no land access. Price to be confirmed: closed over WhatsApp.',
     sv_soloen:'Only from {a} to {b}',sv_fuera:'Out of season for the date you picked.',
     sv_prov:'Price to be confirmed',
     filmopt:'I want Robert to film my sessions',filmoptd:'Charged per session, not per person. The files are yours.',
@@ -1526,11 +1668,25 @@ const I18N = {
     costat:'Mexique continental',
     costap:'« Toujours l’envie de te montrer notre culture et la beauté du Mexique continental. » — Robert',
     band2:'Le chemin vers le spot · dernière lumière',
-    eb9:'Les vagues',h2j:'C’est pour ça<br><em>qu’on vient.</em>',
-    sub9:'Des droites longues de point break, des beach breaks qui marchent toute l’année et des reefs qui ne s’ouvrent qu’avec la bonne marée. Houle de sud presque tout l’été et très peu de monde à l’eau.',
-    olasr:'Houle de sud<br>presque toute l’année',
-    w1:'Mur propre sur une houle de sud',w2:'Sections de tube',w3:'Descente vers le spot, en fin de journée',
-    w4:'Un mur pour enchaîner',w5:'Collines vertes et eau bleue',
+    eb9:'La côte',h2j:'Là où la montagne s’arrête.',
+    sub9:'Des kilomètres de côte sans nom, la brume au petit matin et personne d’autre à l’eau. C’est l’océan qui choisit le spot du jour.',
+    mystpts:['Houle de sud presque toute l’année','Droites longues, beach breaks et reef','Très peu de monde à l’eau','Le spot se décide le matin même'],
+    eb10:'Hors de l’eau',h2k:'Il s’occupe aussi du reste.',
+    sub10:'Rien de tout ça ne se paie sur le site : tu lui écris sur WhatsApp, il te donne le prix et arrange ça avec ses contacts.',
+    exr:'Pas de prix en ligne<br>ça se voit sur WhatsApp',
+    ex_cta:'Demander sur WhatsApp',
+    extras:[
+      ['Massage','Un massage après la session, avec une thérapeute de confiance. Ça se réserve sur WhatsApp.'],
+      ['Hébergement','Dis-lui combien de jours tu viens et Robert t’aide à trouver où loger près des spots.'],
+      ['Location de voiture','Si tu veux bouger par toi-même, il s’occupe de la location avec ses contacts.'],
+      ['Pêche','Sortie pêche avec les pêcheurs d’ici, les jours où la mer n’est pas pour surfer.'],
+      ['Cours de yoga','Du yoga pour t’étirer avant ou après l’eau. En solo ou pour tout le groupe.']
+    ],
+    boatk:'Par la mer',boath:'Surf trip en bateau',
+    boatp:'Les spots qu’on n’atteint pas par la terre, on les atteint par l’eau. On sort en panga avec les pêcheurs d’ici, avec la même nourriture, l’ombre et le guide du trip complet.',
+    boat_lbl:'Par personne / jour',boat_falta:'Prix à confirmer',
+    boat_note:'Robert est encore en train de fixer le prix du bateau. Écris-lui, il te le donne.',
+    boat_cta:'Demander le prix',
     pv_k:'Pura vida',pv_cta:'Demander à Robert',pv_abre:'Ouvert',pv_donde:'Où',
     eb3:'Vidéo',h2d:'Robert porte aussi<br><em>la caméra.</em>',
     sub3:'En plus d’être guide, Robert travaille comme cadreur dans le milieu du surf. La vidéo se facture à la session, en plus du tarif du trip, et tu peux l’ajouter au moment de réserver.',
@@ -1555,6 +1711,7 @@ const I18N = {
     sv_trip:'Surf trip complet',sv_tripd:'La formule de Robert : transport, sessions toute la journée, guide certifié, ombre, nourriture et trousse de secours.',
     sv_guia:'Guide seul — j’ai une voiture',sv_guiad:'Tu conduis, Robert t’emmène sur les bons spots et te surveille à l’eau. Sans transport.',
     sv_lessons:'Cours de surf',sv_lessonsd:'Des cours pour débuter de zéro ou corriger ce qui cloche.',
+    sv_lancha:'Surf trip en bateau',sv_lanchad:'On part par la mer vers les spots sans accès terrestre. Prix à confirmer : ça se règle sur WhatsApp.',
     sv_soloen:'Seulement de {a} à {b}',sv_fuera:'Hors saison pour la date choisie.',
     sv_prov:'Prix à confirmer',
     filmopt:'Je veux que Robert filme mes sessions',filmoptd:'Facturé à la session, pas par personne. Les fichiers sont à toi.',
@@ -1658,11 +1815,25 @@ const I18N = {
     costat:'México continental',
     costap:'“Sempre com vontade de te mostrar nossa cultura e a beleza do México continental.” — Robert',
     band2:'O caminho até o pico · última luz',
-    eb9:'As ondas',h2j:'É por isso<br><em>que se vem.</em>',
-    sub9:'Direitas longas de point, beach breaks que quebram o ano todo e reefs que só entram com a maré certa. Swell de sul quase o verão inteiro e pouquíssima gente na água.',
-    olasr:'Swell de sul<br>quase o ano todo',
-    w1:'Parede limpa com swell de sul',w2:'Seções de tubo',w3:'Descida até o pico, fim de tarde',
-    w4:'Parede para manobrar',w5:'Mato verde e água azul',
+    eb9:'A costa',h2j:'Onde o morro termina.',
+    sub9:'Quilômetros de costa sem nome, névoa de manhã e ninguém mais na água. O pico do dia quem escolhe é o mar.',
+    mystpts:['Swell de sul quase o ano todo','Direitas longas, beach breaks e reef','Muito pouca gente na água','O pico se escolhe na mesma manhã'],
+    eb10:'Fora da água',h2k:'O resto ele também resolve.',
+    sub10:'Nada disso é cobrado no site: você fala com ele no WhatsApp, ele passa o preço e arruma com o pessoal dele.',
+    exr:'Sem preço online<br>combina no WhatsApp',
+    ex_cta:'Perguntar no WhatsApp',
+    extras:[
+      ['Massagem','Massagem depois da sessão, com terapeuta de confiança. Combina pelo WhatsApp.'],
+      ['Hospedagem','Fala quantos dias você vem e o Robert te ajuda a achar onde ficar perto dos picos.'],
+      ['Aluguel de carro','Se quiser se mover por conta própria, ele consegue o aluguel com quem já conhece.'],
+      ['Pesca','Saída de pesca com pescadores daqui, nos dias em que o mar não está para surfar.'],
+      ['Aulas de yoga','Yoga para alongar antes ou depois da água. Individual ou para o grupo.']
+    ],
+    boatk:'Pelo mar',boath:'Surf trip de lancha',
+    boatp:'Os picos onde não se chega por terra, se chega pela água. Saímos de lancha com pescadores daqui, com a mesma comida, sombra e guia do trip completo.',
+    boat_lbl:'Por pessoa / dia',boat_falta:'Preço a confirmar',
+    boat_note:'O Robert ainda está fechando o preço da lancha. Fala com ele que ele te passa.',
+    boat_cta:'Perguntar o preço',
     pv_k:'Pura vida',pv_cta:'Perguntar ao Robert',pv_abre:'Abre',pv_donde:'Onde',
     eb3:'Filmagem',h2d:'O Robert também<br><em>leva a câmera.</em>',
     sub3:'Além de guia, o Robert trabalha como filmer na indústria do surf. A filmagem é cobrada por sessão, à parte da tarifa do trip, e você pode adicionar na hora de reservar.',
@@ -1687,6 +1858,7 @@ const I18N = {
     sv_trip:'Surf trip completo',sv_tripd:'O pacote do Robert: transporte, sessões o dia todo, guia certificado, sombra, comida e kit de primeiros socorros.',
     sv_guia:'Só guia — tenho carro',sv_guiad:'Você dirige, o Robert te leva aos picos certos e cuida de você na água. Sem transporte.',
     sv_lessons:'Aulas de surf',sv_lessonsd:'Aulas para começar do zero ou corrigir o que está errado.',
+    sv_lancha:'Surf trip de lancha',sv_lanchad:'Saímos pelo mar para os picos sem acesso por terra. Preço a confirmar: fecha pelo WhatsApp.',
     sv_soloen:'Só de {a} a {b}',sv_fuera:'Fora de temporada para a data escolhida.',
     sv_prov:'Preço a confirmar',
     filmopt:'Quero que o Robert filme minhas sessões',filmoptd:'Cobrado por sessão, não por pessoa. Os arquivos são seus.',
@@ -1787,6 +1959,7 @@ const TOTAL_STEPS = 5;
    ============================================================ */
 const nav = document.getElementById('nav'), links = document.getElementById('links'), burger = document.getElementById('burger');
 const heroImg = document.getElementById('heroImg');
+let heroVid = null;   // lo pone aplicarVideos si Robert subió clip de portada
 addEventListener('scroll', ()=>{
   const y = scrollY;
   nav.classList.toggle('stuck', y > 40);
@@ -1795,7 +1968,11 @@ addEventListener('scroll', ()=>{
   const res = document.getElementById('reserva').getBoundingClientRect();
   const sobreReserva = res.top < innerHeight && res.bottom > innerHeight * .35;
   document.getElementById('fab').classList.toggle('show', y > innerHeight*.8 && !sobreReserva);
-  if(heroImg && y < innerHeight) heroImg.style.transform = `translateY(${y*0.2}px)`;
+  if(y < innerHeight){
+    const t = `translateY(${y*0.2}px)`;
+    if(heroImg) heroImg.style.transform = t;
+    if(heroVid) heroVid.style.transform = t;
+  }
   document.querySelectorAll('[data-par]').forEach(el=>{
     const r = el.getBoundingClientRect();
     if(r.bottom > 0 && r.top < innerHeight){
@@ -1825,6 +2002,8 @@ addEventListener('mousemove', e=>{
    Render
    ============================================================ */
 const fmtN = n => n.toLocaleString('es-MX');
+/* Lo que Robert escribe en el panel entra como texto, nunca como HTML */
+const esc = s => String(s ?? '').replace(/[<>&]/g, c=> ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 
 function renderTicker(){
   const html = t('ticker').map(i=>`<span>${i}</span>`).join('<span>·</span>');
@@ -1849,11 +2028,18 @@ function renderPrices(){
 }
 
 function renderFilm(){
-  document.getElementById('filmgrid').innerHTML = CONFIG.gallery.map((src,i)=>`
-    <div class="shot">
-      <img src="${src}" alt="" loading="lazy">
+  // Los tres primeros cuadros pueden traer clip en vez de foto (VIDS.film-1…3)
+  document.getElementById('filmgrid').innerHTML = CONFIG.gallery.map((src,i)=>{
+    const clip = VIDS['film-' + (i+1)];
+    const medio = clip
+      ? `<video src="${clip.src}"${clip.poster ? ` poster="${clip.poster}"` : ''} muted loop playsinline preload="none" data-clip></video>`
+      : `<img src="${src}" alt="" loading="lazy">`;
+    return `<div class="shot">
+      ${medio}
       <div class="ui"><b>${t('filmcaps')[i]}</b></div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  armarClips();
 
   // hoja de precios de filmación, con la misma caja que la del surf trip
   const box = document.getElementById('filmPrices');
@@ -1870,6 +2056,103 @@ function renderFilm(){
       </div>`).join('')}
     <p class="p-note">${t('filmpricenote')}</p>
     <a href="#reserva" class="btn btn-primary">${t('pricecta')}</a>`;
+}
+
+/* ------------------------------------------------------------
+   Textos que Robert edita en el panel (pestaña Textos).
+   Si todavía no ha tocado uno, o si la API no contestó, se usa el
+   de la página en el idioma que esté puesto: nunca queda hueco.
+   ------------------------------------------------------------ */
+function txtCfg(bloque, campo){
+  const b = CFG.textos?.[bloque];
+  if(!b) return null;
+  const v = LANG === 'es' ? b[campo] : (b.i18n?.[LANG]?.[campo] ?? b[campo]);
+  if(v === undefined || v === null) return null;
+  if(typeof v === 'string' && !v.trim()) return null;
+  if(Array.isArray(v) && !v.length) return null;
+  return v;
+}
+
+/* La costa: una foto, un párrafo y cuatro puntos. Nada más. */
+function renderMyst(){
+  const set = (id, val)=>{ const el = document.getElementById(id); if(el && val) el.textContent = val; };
+  set('mystKicker', txtCfg('costa','kicker'));
+  set('mystTitulo', txtCfg('costa','titulo'));
+  set('mystTexto',  txtCfg('costa','texto'));
+  const pts = txtCfg('costa','puntos') || t('mystpts') || [];
+  document.getElementById('mystPts').innerHTML = pts.map(p=>`<li>${esc(p)}</li>`).join('');
+}
+
+/* Extras sin precio: cada tarjeta abre WhatsApp con su propio mensaje. */
+function renderExtras(){
+  const sec = document.getElementById('extras');
+  if(!sec) return;
+  const set = (id, val)=>{ const el = document.getElementById(id); if(el && val) el.textContent = val; };
+  set('exKicker', txtCfg('extras','kicker'));
+  set('exTitulo', txtCfg('extras','titulo'));
+  set('exTexto',  txtCfg('extras','texto'));
+
+  // del panel si ya llegaron; si no, los de la página en el idioma actual
+  const lista = Array.isArray(CFG.extras) && CFG.extras.length
+    ? CFG.extras.filter(e=> e.activo !== false).map(e=>{
+        const tr = LANG === 'es' ? null : e.i18n?.[LANG];
+        return { nombre: (tr?.nombre || e.nombre || ''), texto: (tr?.texto || e.texto || '') };
+      })
+    : (t('extras') || []).map(([nombre, texto])=> ({ nombre, texto }));
+
+  if(!lista.length){ sec.style.display = 'none'; return; }
+  sec.style.display = '';
+
+  document.getElementById('extrasGrid').innerHTML = lista.map((e,i)=>`
+    <article class="ex">
+      <span class="no">${String(i+1).padStart(2,'0')}</span>
+      <h4>${esc(e.nombre)}</h4>
+      <p>${esc(e.texto)}</p>
+      <a class="go" href="${waExtra(e.nombre)}" target="_blank" rel="noopener">
+        ${t('ex_cta')}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+      </a>
+    </article>`).join('');
+}
+
+/** Mensaje de WhatsApp de un extra: llega diciendo por cuál pregunta. */
+function waExtra(nombre){
+  const plantilla = {
+    es:`¡Hola Robert! Vi tu página. Me interesa: ${nombre}. ¿Me pasas precio y cómo funciona?`,
+    en:`Hey Robert! Saw your site. I am interested in: ${nombre}. Can you send me the price and how it works?`,
+    fr:`Salut Robert ! J'ai vu ton site. Je suis intéressé par : ${nombre}. Tu peux m'envoyer le prix et comment ça marche ?`,
+    pt:`Oi Robert! Vi seu site. Tenho interesse em: ${nombre}. Me passa o preço e como funciona?`
+  }[LANG] || `Hey Robert! Saw your site. I am interested in: ${nombre}.`;
+  return `https://wa.me/${CFG.negocio.whatsapp}?text=${encodeURIComponent(plantilla)}`;
+}
+
+/** ¿Este servicio ya tiene precio? La lancha nace en cero a propósito. */
+function sinPrecio(serv){
+  const cfg = CFG.servicios[serv];
+  if(!cfg) return false;
+  if(serv === 'lessons') return !(Number(cfg.precio) > 0);
+  return !(cfg.tiers || []).some(x=> Number(x.precio) > 0);
+}
+
+/* Cuadro de la lancha en Surf Trips: enseña el precio si ya lo hay, y si no,
+   dice que falta y manda a preguntarlo. */
+function renderBoat(){
+  const box = document.getElementById('boatBox');
+  if(!box) return;
+  const cfg = CFG.servicios.lancha;
+  if(!cfg || cfg.activo === false){ box.style.display = 'none'; return; }
+  box.style.display = '';
+
+  const falta = sinPrecio('lancha');
+  const desde = falta ? 0 : Math.min(...cfg.tiers.map(x=> Number(x.precio) || Infinity));
+  document.getElementById('boatPrecio').innerHTML = falta
+    ? `<span class="lbl">${t('boat_lbl')}</span>
+       <span class="n">${t('boat_falta')}</span>
+       <p>${t('boat_note')}</p>
+       <a class="btn btn-wa" href="${waExtra(t('boath'))}" target="_blank" rel="noopener">${t('boat_cta')}</a>`
+    : `<span class="lbl">${t('boat_lbl')}</span>
+       <span class="n">$${fmtN(desde)}<small>MXN</small></span>
+       <a href="#reserva" class="btn btn-light">${t('pricecta')}</a>`;
 }
 
 function renderSpots(){
@@ -1948,17 +2231,23 @@ function renderServicios(){
   const items = [
     { id:'trip',    cfg:CFG.servicios.trip },
     { id:'guia',    cfg:CFG.servicios.guia },
+    { id:'lancha',  cfg:CFG.servicios.lancha || {activo:false} },
     { id:'lessons', cfg:le, nota:temporada }
   ].filter(s=> s.cfg.activo !== false);
+
+  // si el servicio elegido dejó de existir (Robert lo apagó), se vuelve al trip
+  if(!items.some(s=> s.id === state.serv)) state.serv = items[0]?.id || 'trip';
 
   document.getElementById('optServ').innerHTML = items.map(s=>{
     // Las clases solo se pueden elegir si la fecha cae en su temporada.
     const fuera = s.id==='lessons' && state.date && !enTemporada(state.date);
+    // sin precio (la lancha, por ahora) el aviso es más fuerte que "provisional"
+    const falta = sinPrecio(s.id);
     return `
     <label class="opt ${state.serv===s.id?'sel':''}" data-serv="${s.id}" ${fuera?'data-off="1" style="opacity:.45"':''}>
       <span class="tick">${TICK}</span>
       <span class="txt">
-        <b>${t('sv_'+s.id)}${s.cfg.provisional?`<span class="prov">${t('sv_prov')}</span>`:''}</b>
+        <b>${t('sv_'+s.id)}${(falta || s.cfg.provisional)?`<span class="prov">${falta?t('boat_falta'):t('sv_prov')}</span>`:''}</b>
         <span>${t('sv_'+s.id+'d')}${s.nota?` · ${s.nota}`:''}${fuera?` · ${t('sv_fuera')}`:''}</span>
       </span>
     </label>`;
@@ -2022,6 +2311,29 @@ function renderOptions(){
 function calc(){
   const lineas = [];
   const pax = state.pax, dias = state.days;
+  const falta = sinPrecio(state.serv);
+
+  // Servicio sin precio publicado: se arma el trip igual, pero no se cobra
+  // desde la página — el desglose lo dice y todo se va a WhatsApp.
+  if(falta){
+    lineas.push({
+      label: t('sv_'+state.serv),
+      detail: `${pax} ${pax===1?t('person'):t('people')} × ${dias} ${dias===1?t('day'):t('days_')}`,
+      monto: 0, rate: 0, sin: true
+    });
+    if(state.film && CFG.filmacion.activo !== false){
+      const o = CFG.filmacion.opciones.find(x=> x.id === state.filmOpt);
+      if(o){
+        const n = state.filmSes;
+        lineas.push({
+          label: t('r_film'),
+          detail: `${(n===1?t('f_ses'):t('f_sess')).replace('{n}',n)} · ${t('f_hrs').replace('{h}',o.horas)} × $${fmtN(o.precio)}`,
+          monto: o.precio * n, rate: o.precio
+        });
+      }
+    }
+    return { lineas, total:0, anticipo:0, saldo:0, pct:0, rate:0, sin:true };
+  }
 
   if(state.serv === 'lessons'){
     const r = CFG.servicios.lessons.precio;
@@ -2073,11 +2385,18 @@ function updateSummary(){
     [t('r_film'), state.film ? `${state.filmSes} × ${t('f_hrs').replace('{h}',filmHoras())}` : t('no')]
   ];
   box.innerHTML = lines.map(l=>`<div class="sum-line"><span>${l[0]}</span><span>${l[1]}</span></div>`).join('');
-  document.getElementById('sumTotal').textContent = fmtN(c.total);
+
+  // Sin precio publicado no se enseña un total de $0: se dice que falta.
+  const caja = document.getElementById('sumTotalBox');
+  if(c.sin) caja.textContent = t('boat_falta');
+  else caja.innerHTML = `$<span id="sumTotal">0</span><small>MXN</small>`;
+  if(!c.sin) document.getElementById('sumTotal').textContent = fmtN(c.total);
+
   document.getElementById('discBox').innerHTML = c.pct
     ? `<span class="disc">${t('r_ant')} ${c.pct}%: $${fmtN(c.anticipo)}</span>` : '';
-  document.getElementById('sumNote').textContent = c.pct
-    ? t('sumnote').replace('{p}', c.pct) : t('sumnotenp');
+  document.getElementById('sumNote').textContent = c.sin
+    ? t('boat_note')
+    : (c.pct ? t('sumnote').replace('{p}', c.pct) : t('sumnotenp'));
   const ph = document.getElementById('pctHead');
   if(ph) ph.textContent = c.pct;
   renderTiers();
@@ -2095,8 +2414,22 @@ function renderBreakdown(c){
   box.innerHTML = c.lineas.map(l=>`
     <div class="br-line">
       <span class="k">${l.label}<small>${l.detail}</small></span>
-      <span class="v">$${fmtN(l.monto)}</span>
+      <span class="v">${l.sin ? t('boat_falta') : '$'+fmtN(l.monto)}</span>
     </div>`).join('');
+
+  // Sin precio no hay anticipo que cobrar: se esconde el cuadro y el botón,
+  // y el mensaje de WhatsApp queda como único camino.
+  if(c.sin){
+    const dep = document.getElementById('depBox');
+    dep.style.display = '';
+    dep.querySelectorAll('.dep-row').forEach(r=> r.style.display = 'none');
+    document.getElementById('btnPay').style.display = 'none';
+    const nota = document.getElementById('dpNote');
+    nota.textContent = t('boat_note');
+    nota.style.color = ''; nota.style.fontWeight = '';
+    return;
+  }
+  document.getElementById('depBox').querySelectorAll('.dep-row').forEach(r=> r.style.display = '');
 
   document.getElementById('dpTotal').textContent = fmtN(c.total);
   document.getElementById('dpPct').textContent   = c.pct;
@@ -2316,8 +2649,8 @@ function armarMensaje(encabezado){
     '',
     `*${L.money}*`,
     // el desglose línea por línea, tal como lo vio el cliente
-    ...c.lineas.map(l=> `${l.label} (${l.detail}): $${fmtN(l.monto)} MXN`),
-    `${L.tot}: $${fmtN(c.total)} MXN`,
+    ...c.lineas.map(l=> `${l.label} (${l.detail}): ${l.sin ? t('boat_falta') : '$'+fmtN(l.monto)+' MXN'}`),
+    c.sin ? `${L.tot}: ${t('boat_falta')}` : `${L.tot}: $${fmtN(c.total)} MXN`,
     // Robert tiene que ver de un vistazo si ya entró dinero y cuánto
     c.pct ? (state.paid
       ? `${L.ant} (${c.pct}%): $${fmtN(state.paidMonto || c.anticipo)} MXN — ${L.pagado}`
@@ -2417,10 +2750,68 @@ async function cargarConfig(){
       filmacion:{ ...CFG.filmacion, ...(c.filmacion||{}) },
       anticipo:{ ...CFG.anticipo, ...(c.anticipo||{}), politicaI18n:{ ...CFG.anticipo.politicaI18n, ...(c.anticipo?.politicaI18n||{}) } },
       puravida:{ ...CFG.puravida, ...(c.puravida||{}), i18n:{ ...CFG.puravida.i18n, ...(c.puravida?.i18n||{}) } },
+      extras: Array.isArray(c.extras) ? c.extras : CFG.extras,
+      textos: c.textos || CFG.textos,
       negocio:{ ...CFG.negocio, ...(c.negocio||{}) },
       reglas:{ ...CFG.reglas, ...(c.reglas||{}) } };
     aplicarFotos(c.fotos);
+    aplicarVideos(c.videos);
   } catch(e){ /* sin backend: se usa el respaldo de arriba */ }
+}
+
+/* ============================================================
+   Videos cortos que subió Robert desde el panel
+
+   El de portada se monta encima de la foto del hero; los de filmación toman
+   el lugar de los primeros cuadros de la galería. Sin video, todo se queda
+   como estaba: la foto es el respaldo, no un hueco vacío.
+   ============================================================ */
+function aplicarVideos(mapa){
+  VIDS = mapa || {};
+
+  const clip = VIDS.hero;
+  const fondo = document.querySelector('.hero-bg');
+  if(clip && fondo && !heroVid){
+    const v = document.createElement('video');
+    v.src = clip.src;
+    if(clip.poster) v.poster = clip.poster;
+    v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
+    v.setAttribute('playsinline','');       // iOS viejo solo entiende el atributo
+    v.setAttribute('muted','');
+    v.preload = 'auto';
+    // si el archivo no se puede leer, se quita y abajo sigue la foto: más vale
+    // portada fija que cuadro negro
+    v.addEventListener('error', ()=>{ v.remove(); heroVid = null; });
+    fondo.appendChild(v);
+    heroVid = v;
+
+    /* Que `play()` truene NO es motivo para quitarlo: el navegador rechaza el
+       arranque cuando la pestaña está en segundo plano o el teléfono está en
+       bajo consumo, y en cuanto vuelve al frente arranca solo. Quitarlo ahí
+       dejaba la portada sin video en el primer intento. */
+    const arrancar = ()=> v.play().catch(()=>{});
+    arrancar();
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) arrancar(); });
+    addEventListener('pageshow', arrancar);
+    addEventListener('touchstart', arrancar, { once:true, passive:true });
+  }
+
+  renderFilm();   // la galería de filmación se repinta ya con los clips
+}
+
+/* Los clips de la galería solo corren mientras se ven: tres videos en bucle
+   a la vez calientan el teléfono y se comen los datos por nada. */
+let ioClips = null;
+function armarClips(){
+  const clips = document.querySelectorAll('#filmgrid video[data-clip]');
+  if(!clips.length) return;
+  if(ioClips) ioClips.disconnect();
+  ioClips = new IntersectionObserver(es=> es.forEach(e=>{
+    const v = e.target;
+    if(e.isIntersecting){ v.preload = 'auto'; v.play().catch(()=>{}); }
+    else v.pause();
+  }), { threshold:.25 });
+  clips.forEach(v=> ioClips.observe(v));
 }
 
 /* Fotos que Robert cambió desde el panel. La llave es el archivo original
@@ -2542,7 +2933,17 @@ function applyLang(){
   });
   document.querySelectorAll('[data-ph]').forEach(el=> el.placeholder = t(el.dataset.ph));
   document.querySelectorAll('.lang button').forEach(b=> b.classList.toggle('on', b.dataset.lang===LANG));
+
+  /* La portada también se edita desde el panel. Va después del barrido de
+     data-i18n, que ya dejó el texto del idioma: esto solo lo pisa si Robert
+     escribió algo suyo. */
+  const h1 = document.querySelector('.hero-t span'), sub = document.querySelector('.hero-sub');
+  const hTit = txtCfg('hero','titulo'), hSub = txtCfg('hero','sub');
+  if(h1 && hTit) h1.textContent = hTit;
+  if(sub && hSub) sub.textContent = hSub;
+
   renderTicker(); renderIncludes(); renderPrices(); renderFilm(); renderSpots(); renderQuotes(); renderFaq();
+  renderMyst(); renderExtras(); renderBoat();
   renderPuraVida(); renderOptions(); renderCal(); checkTaken(); updateSummary();
   refreshWaLinks(); revealScan();
   document.getElementById('btnNext').querySelector('span').textContent = step === TOTAL_STEPS ? t('review') : t('next');
