@@ -156,6 +156,53 @@ tbody tr:hover{background:#FAFAF8}
 .foto.subiendo{opacity:.55;pointer-events:none}
 .zona{margin:22px 0 10px;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .zona:first-child{margin-top:0}
+
+/* ---------- editor de recorte ----------
+   Se abre entre escoger el archivo y subirlo. El marco es del tamaño con el
+   que la página recorta esa foto, así que lo que se ve aquí es lo que queda
+   publicado: no hay que subir, ver el sitio y volver a intentar. */
+.rec{position:fixed;inset:0;z-index:60;background:rgba(30,27,23,.72);display:none;padding:16px}
+.rec.on{display:grid;place-items:center}
+.rec-box{
+  background:var(--card);border-radius:14px;width:100%;max-width:620px;min-width:0;
+  max-height:calc(100dvh - 32px);display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 18px 50px rgba(0,0,0,.28);
+}
+.rec-hd{display:flex;align-items:flex-start;gap:10px;padding:15px 16px 12px;border-bottom:1px solid var(--line)}
+.rec-hd div{flex:1;min-width:0}
+.rec-hd b{font-size:14px;font-weight:600;display:block}
+.rec-hd small{color:var(--ink-3);font-size:12px;line-height:1.45}
+.rec-hd .x{border:0;background:none;font:inherit;font-size:17px;line-height:1;color:var(--ink-3);cursor:pointer;padding:2px 4px}
+.rec-cuerpo{padding:14px 16px;overflow:auto;min-height:0}
+/* el lienzo se centra y la sombra de afuera marca lo que se va a cortar */
+.rec-lienzo{display:grid;place-items:center;background:#1E1B17;border-radius:10px;padding:10px;position:relative}
+.rec-lienzo canvas{
+  display:block;border-radius:4px;touch-action:none;cursor:grab;
+  box-shadow:0 0 0 1px rgba(255,255,255,.28);max-width:100%;
+}
+.rec-lienzo canvas:active{cursor:grabbing}
+/* rejilla de tercios encima del marco, sin estorbar el arrastre */
+.rec-rej{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:.5}
+.rec-rej::before,.rec-rej::after{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(to right,transparent 33.33%,rgba(255,255,255,.5) 33.33%,rgba(255,255,255,.5) calc(33.33% + 1px),transparent calc(33.33% + 1px),transparent 66.66%,rgba(255,255,255,.5) 66.66%,rgba(255,255,255,.5) calc(66.66% + 1px),transparent calc(66.66% + 1px));
+}
+.rec-rej::after{background-image:linear-gradient(to bottom,transparent 33.33%,rgba(255,255,255,.5) 33.33%,rgba(255,255,255,.5) calc(33.33% + 1px),transparent calc(33.33% + 1px),transparent 66.66%,rgba(255,255,255,.5) 66.66%,rgba(255,255,255,.5) calc(66.66% + 1px),transparent calc(66.66% + 1px))}
+.rec-ayuda{font-size:12px;color:var(--ink-3);margin:11px 0 13px;line-height:1.5}
+.rec-lb{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
+.rec-formas{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.rec-formas button{
+  font:inherit;font-size:12px;padding:5px 11px;border:1px solid var(--line-2);border-radius:99px;
+  background:#fff;color:var(--ink-2);cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.rec-formas button:hover{background:#F2F1EE}
+.rec-formas button.on{background:var(--sage);border-color:var(--sage);color:#fff}
+.rec-formas button .sug{font-size:10px;opacity:.75;margin-left:4px}
+.rec-zoom{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.rec-zoom input[type=range]{flex:1;width:auto;padding:0;accent-color:var(--sage)}
+.rec-pie{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:13px 16px;border-top:1px solid var(--line);background:#FAFAF8}
+.rec-pie .sp{flex:1}
+.rec-box.trabajando{opacity:.6;pointer-events:none}
 @media(max-width:820px){
   /* `grid-template-rows` explícito: con filas automáticas el grid reparte el
      alto sobrante entre las dos y la barra de pestañas se estiraba media
@@ -444,6 +491,36 @@ tbody tr:hover{background:#FAFAF8}
       </div>
     </section>
   </main>
+</div>
+
+<!-- Editor de recorte: se abre solo al escoger una foto -->
+<div class="rec" id="rec" role="dialog" aria-modal="true" aria-label="Recortar foto">
+  <div class="rec-box" id="recBox">
+    <div class="rec-hd">
+      <div><b id="recTit">Recortar</b><small id="recNota"></small></div>
+      <button class="x" id="recX" title="Cancelar">✕</button>
+    </div>
+    <div class="rec-cuerpo">
+      <div class="rec-lienzo">
+        <canvas id="recCv"></canvas>
+        <div class="rec-rej" id="recRej"></div>
+      </div>
+      <p class="rec-ayuda">Arrastra la foto para acomodarla y usa el zoom para acercar. Lo que se ve en el marco es justo lo que va a salir en la página.</p>
+      <div class="rec-lb">Forma</div>
+      <div class="rec-formas" id="recFormas"></div>
+      <div class="rec-lb">Zoom</div>
+      <label class="rec-zoom">
+        <input type="range" id="recZoom" min="1" max="6" step="0.01" value="1" aria-label="Zoom">
+      </label>
+    </div>
+    <div class="rec-pie">
+      <button class="btn ghost sm" id="recGirar">Girar</button>
+      <button class="btn ghost sm" id="recCentrar">Centrar</button>
+      <span class="sp"></span>
+      <button class="btn ghost" id="recCancel">Cancelar</button>
+      <button class="btn" id="recOk">Usar esta foto</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -860,7 +937,7 @@ function pintarFotos(){
       ${z.items.map(s=>{
         const tuya = puestas[s.id];
         return `<div class="foto" data-slot="${s.id}">
-          <div class="im">
+          <div class="im" style="aspect-ratio:${s.forma || '4/3'}">
             <img src="${tuya || ('/fotos/' + s.id)}" alt="${esc(s.label)}" loading="lazy">
             ${tuya ? '<span class="cambiada">Tuya</span>' : ''}
           </div>
@@ -887,16 +964,21 @@ function pedirArchivo(slot){
   inp.click();
 }
 
+/* Escoger el archivo ya no sube nada: abre el editor. Se sube hasta que
+   Robert dice cómo quiere el recorte. */
 $('fotoFile').onchange = async (e)=>{
   const archivo = e.target.files?.[0];
   const slot = slotEnCurso;
   slotEnCurso = null;
   if(!archivo || !slot) return;
+  try { await abrirRecorte(slot, archivo); }
+  catch(err){ flash(err.message || 'No se pudo leer esa foto.', 'err'); }
+};
 
+async function subirFoto(slot, dataUrl){
   const tarjeta = $('fotosLista').querySelector(`.foto[data-slot="${slot}"]`);
   tarjeta?.classList.add('subiendo');
   try {
-    const dataUrl = await achicar(archivo);
     const r = await apiFoto('subir', { slot, dataUrl });
     D.fotos = { ...(D.fotos || {}), [slot]: r.url };
     pintarFotos();
@@ -905,7 +987,7 @@ $('fotoFile').onchange = async (e)=>{
     tarjeta?.classList.remove('subiendo');
     flash(err.message || 'No se pudo subir la foto.', 'err');
   }
-};
+}
 
 async function quitarFoto(slot){
   if(!confirm('¿Quitar esta foto y dejar la que traía la página?')) return;
@@ -919,16 +1001,237 @@ async function quitarFoto(slot){
   } catch(err){ flash(err.message, 'err'); }
 }
 
-async function achicar(archivo){
-  const img = await cargarImagen(archivo);
-  const ancho = img.width, alto = img.height;
-  const escala = Math.min(1, LADO_MAX / Math.max(ancho, alto));
-  const w = Math.max(1, Math.round(ancho * escala));
-  const h = Math.max(1, Math.round(alto * escala));
+/* ============================================================
+   Editor de recorte
+
+   El marco tiene la proporción con la que la página recorta ese hueco
+   (`forma` en lib/db.js), así que el encuadre se decide aquí y no
+   subiendo, mirando el sitio y volviendo a intentar.
+
+   El modelo es una ventana sobre la foto, en pixeles de la foto:
+   centro (cx,cy) y zoom `z`, donde z=1 es el recorte más grande de esa
+   proporción que cabe dentro. Arrastrar mueve el centro, el zoom achica
+   la ventana. Se dibuja con un solo drawImage recortado, así que lo que
+   se ve en pantalla y lo que se exporta salen de la misma cuenta.
+   ============================================================ */
+const FORMAS = [
+  { id:'16/9',  label:'Ancha' },
+  { id:'3/2',   label:'3:2' },
+  { id:'4/3',   label:'4:3' },
+  { id:'1/1',   label:'Cuadrada' },
+  { id:'4/5',   label:'Alta' },
+  { id:'3/4',   label:'3:4' },
+  { id:'9/16',  label:'Vertical' },
+  { id:'libre', label:'Completa' },
+];
+
+const R = { slot:null, base:null, src:null, rot:0, forma:'4/3', sugerida:'4/3',
+            A:1, z:1, cx:0, cy:0, cw:0, ch:0, dispW:0, dispH:0 };
+const recCv = $('recCv');
+
+function razon(id){
+  if(id === 'libre') return R.src ? R.src.width / R.src.height : 1;
+  const [a, b] = id.split('/').map(Number);
+  return a / b;
+}
+
+async function abrirRecorte(slot, archivo){
+  const s = (D.slots || []).find(x=> x.id === slot) || { label:'Foto', nota:'', forma:'4/3' };
+  R.slot = slot;
+  R.base = await cargarImagen(archivo);
+  R.rot = 0;
+  R.sugerida = s.forma || '4/3';
+  R.forma = R.sugerida;
+  R.z = 1;
+
+  $('recTit').textContent = 'Recortar: ' + s.label;
+  $('recNota').textContent = s.nota || '';
+  $('recFormas').innerHTML = FORMAS.map(f=>
+    `<button data-f="${f.id}">${esc(f.label)}${f.id === R.sugerida ? '<span class="sug">la de la página</span>' : ''}</button>`
+  ).join('');
+  $('recFormas').querySelectorAll('button').forEach(b=>{
+    b.onclick = ()=>{ R.forma = b.dataset.f; marcarFormas(); ajustarLienzo(); pintarRecorte(); };
+  });
+
+  rehacerFuente();          // deja R.src y centra
+  marcarFormas();
+
+  /* el modal se muestra ANTES de medir: en `display:none` el lienzo mide 0
+     de ancho y el marco salía del tamaño mínimo */
+  $('rec').classList.add('on');
+  document.body.style.overflow = 'hidden';
+  ajustarLienzo();
+  pintarRecorte();
+}
+
+function cerrarRecorte(){
+  $('rec').classList.remove('on');
+  $('recBox').classList.remove('trabajando');
+  document.body.style.overflow = '';
+  R.base?.close?.();
+  R.base = null; R.src = null; R.slot = null;
+}
+
+function marcarFormas(){
+  $('recFormas').querySelectorAll('button').forEach(b=>
+    b.classList.toggle('on', b.dataset.f === R.forma));
+}
+
+/* La rotación se hornea en un lienzo aparte: así el resto del editor
+   siempre trabaja contra una imagen derecha y no hay que arrastrar
+   ángulos por toda la cuenta. */
+function rehacerFuente(){
+  const b = R.base;
+  const vertical = R.rot === 90 || R.rot === 270;
+  const w = vertical ? b.height : b.width;
+  const h = vertical ? b.width : b.height;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.translate(w / 2, h / 2);
+  ctx.rotate(R.rot * Math.PI / 180);
+  ctx.drawImage(b, -b.width / 2, -b.height / 2);
+  R.src = c;
+  R.cx = w / 2; R.cy = h / 2;
+}
+
+function ajustarLienzo(){
+  R.A = razon(R.forma);
+  const caja = recCv.parentElement;
+  const anchoLibre = Math.max(160, caja.clientWidth - 20);   // 20 = padding del lienzo
+  const altoLibre  = Math.max(180, Math.min(window.innerHeight * 0.42, 430));
+  let w = Math.min(anchoLibre, altoLibre * R.A);
+  let h = w / R.A;
+  if(h > altoLibre){ h = altoLibre; w = h * R.A; }
+  R.dispW = Math.round(w); R.dispH = Math.round(h);
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  recCv.style.width = R.dispW + 'px';
+  recCv.style.height = R.dispH + 'px';
+  recCv.width = Math.round(R.dispW * dpr);
+  recCv.height = Math.round(R.dispH * dpr);
+
+  const rej = $('recRej');
+  rej.style.width = R.dispW + 'px';
+  rej.style.height = R.dispH + 'px';
+}
+
+function pintarRecorte(){
+  const s = R.src;
+  if(!s) return;
+  const cwMax = Math.min(s.width, s.height * R.A);
+  R.cw = cwMax / R.z;
+  R.ch = R.cw / R.A;
+  R.cx = Math.min(Math.max(R.cx, R.cw / 2), s.width - R.cw / 2);
+  R.cy = Math.min(Math.max(R.cy, R.ch / 2), s.height - R.ch / 2);
+
+  const ctx = recCv.getContext('2d');
+  ctx.clearRect(0, 0, recCv.width, recCv.height);
+  ctx.drawImage(s, R.cx - R.cw / 2, R.cy - R.ch / 2, R.cw, R.ch,
+                   0, 0, recCv.width, recCv.height);
+  const z = $('recZoom');
+  if(Math.abs(+z.value - R.z) > 0.005) z.value = R.z;
+}
+
+function zoomA(z){
+  R.z = Math.min(Math.max(z, 1), 6);
+  pintarRecorte();
+}
+
+/* ---------- arrastrar y pellizcar ---------- */
+const dedos = new Map();
+let pinchD0 = 0, pinchZ0 = 1;
+
+recCv.addEventListener('pointerdown', (e)=>{
+  recCv.setPointerCapture(e.pointerId);
+  dedos.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if(dedos.size === 2){
+    const [a, b] = [...dedos.values()];
+    pinchD0 = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+    pinchZ0 = R.z;
+  }
+});
+
+recCv.addEventListener('pointermove', (e)=>{
+  const d = dedos.get(e.pointerId);
+  if(!d) return;
+  const dx = e.clientX - d.x, dy = e.clientY - d.y;
+  d.x = e.clientX; d.y = e.clientY;
+
+  if(dedos.size >= 2){
+    const [a, b] = [...dedos.values()];
+    const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+    zoomA(pinchZ0 * (dist / pinchD0));
+    return;
+  }
+  // pixeles de pantalla → pixeles de la foto
+  const k = R.cw / R.dispW;
+  R.cx -= dx * k;
+  R.cy -= dy * k;
+  pintarRecorte();
+});
+
+function soltar(e){
+  dedos.delete(e.pointerId);
+  if(dedos.size < 2) pinchD0 = 0;
+}
+recCv.addEventListener('pointerup', soltar);
+recCv.addEventListener('pointercancel', soltar);
+
+recCv.addEventListener('wheel', (e)=>{
+  e.preventDefault();
+  zoomA(R.z * Math.exp(-e.deltaY * 0.0015));
+}, { passive:false });
+
+$('recZoom').oninput = (e)=> zoomA(+e.target.value);
+
+$('recGirar').onclick = ()=>{
+  R.rot = (R.rot + 90) % 360;
+  rehacerFuente();
+  ajustarLienzo();      // 'Completa' cambia de proporción al girar
+  pintarRecorte();
+};
+
+$('recCentrar').onclick = ()=>{
+  R.z = 1;
+  R.cx = R.src.width / 2;
+  R.cy = R.src.height / 2;
+  pintarRecorte();
+};
+
+$('recX').onclick = $('recCancel').onclick = cerrarRecorte;
+$('rec').addEventListener('click', (e)=>{ if(e.target === $('rec')) cerrarRecorte(); });
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && $('rec').classList.contains('on')) cerrarRecorte();
+});
+window.addEventListener('resize', ()=>{
+  if(!$('rec').classList.contains('on')) return;
+  ajustarLienzo();
+  pintarRecorte();
+});
+
+$('recOk').onclick = async ()=>{
+  const slot = R.slot;
+  if(!slot) return;
+  $('recBox').classList.add('trabajando');
+  try {
+    const dataUrl = exportarRecorte();
+    cerrarRecorte();
+    await subirFoto(slot, dataUrl);
+  } catch(err){
+    $('recBox').classList.remove('trabajando');
+    flash(err.message || 'No se pudo preparar la foto.', 'err');
+  }
+};
+
+/* Misma ventana que se está viendo, ahora a tamaño de publicación. */
+function exportarRecorte(){
+  const escala = Math.min(1, LADO_MAX / Math.max(R.cw, R.ch));
+  const w = Math.max(1, Math.round(R.cw * escala));
+  const h = Math.max(1, Math.round(R.ch * escala));
   const lienzo = document.createElement('canvas');
   lienzo.width = w; lienzo.height = h;
-  lienzo.getContext('2d').drawImage(img, 0, 0, w, h);
-  img.close?.();
+  lienzo.getContext('2d').drawImage(R.src, R.cx - R.cw / 2, R.cy - R.ch / 2, R.cw, R.ch, 0, 0, w, h);
   return lienzo.toDataURL('image/jpeg', CALIDAD);
 }
 
