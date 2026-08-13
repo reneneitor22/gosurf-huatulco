@@ -257,9 +257,19 @@ h2 em{font-style:normal;color:var(--acc)}
 .certs .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--fg-3);display:block;margin-bottom:14px}
 .tags{display:flex;flex-wrap:wrap;gap:7px}
 .tag-i{border:1px solid var(--line-2);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-2)}
-.mini-shots{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:26px;max-width:440px}
-.mini-shots div{aspect-ratio:4/3;overflow:hidden;background:var(--sand)}
+.mini-shots{position:relative;margin-top:26px;max-width:440px}
+.ms-track{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--sand)}
+.ms-slide{position:absolute;inset:0;opacity:0;transition:opacity .7s ease}
+.ms-slide.is-on{opacity:1}
 .mini-shots img{width:100%;height:100%;object-fit:cover}
+.ms-arrow{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:50%;background:rgba(20,20,16,.38);color:#fff;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:2}
+.ms-arrow:hover{background:rgba(20,20,16,.6)}
+.ms-prev{left:10px}
+.ms-next{right:10px}
+.ms-dots{display:flex;gap:8px;margin-top:12px}
+.ms-dot{background:none;border:0;padding:6px 0;width:26px;cursor:pointer;line-height:0}
+.ms-dot i{display:block;height:2px;background:var(--line-2);transition:background .3s}
+.ms-dot[aria-selected="true"] i{background:var(--acc)}
 
 /* ---------- SURF TRIPS: incluye + precios ---------- */
 .trip-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(30px,5vw,80px);align-items:start}
@@ -743,9 +753,15 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
             <span class="tag-i" data-i18n="c2">Cooperativa de Surf Huatulco</span>
           </div>
         </div>
-        <div class="mini-shots">
-          <div><img src="fotos/lifeguard.jpg" alt="" loading="lazy"></div>
-          <div><img src="fotos/cooperativa.jpg" alt="" loading="lazy"></div>
+        <div class="mini-shots" id="miniCar">
+          <div class="ms-track">
+            <div class="ms-slide is-on"><img src="fotos/crew-playa.jpg" alt="Robert con un grupo de surfistas en la playa" loading="lazy"></div>
+            <div class="ms-slide"><img src="fotos/cooperativa.jpg" alt="La Cooperativa de Surf de Huatulco en la playa" loading="lazy"></div>
+            <div class="ms-slide"><img src="fotos/lifeguard.jpg" alt="Robert con el equipo de salvavidas" loading="lazy"></div>
+            <button type="button" class="ms-arrow ms-prev" aria-label="Foto anterior">&#8249;</button>
+            <button type="button" class="ms-arrow ms-next" aria-label="Foto siguiente">&#8250;</button>
+          </div>
+          <div class="ms-dots" role="tablist" aria-label="Fotos de Robert"></div>
         </div>
       </div>
     </div>
@@ -754,7 +770,7 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
 
 <!-- ================= BANDA ================= -->
 <div class="band">
-  <!-- temporal: foto de banco (Unsplash) mientras Robert manda sus barriles en alta -->
+  <!-- temporal: foto de banco (Unsplash) mientras Robert manda sus tubos en alta -->
   <img src="fotos/band-barrel.jpg" alt="" data-par="0.1">
   <div class="cap" data-i18n="band1">Costa de Oaxaca · swell del sur</div>
 </div>
@@ -837,7 +853,7 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
     </div>
     <div class="waves rv">
       <figure><img src="fotos/hero.jpg" alt="Ola rompiendo bajo la loma en la costa de Oaxaca" loading="lazy"><figcaption data-i18n="w1">Pared limpia con swell del sur</figcaption></figure>
-      <figure><img src="fotos/barrel.jpg" alt="Surfista dentro del tubo" loading="lazy"><figcaption data-i18n="w2">Secciones de barril</figcaption></figure>
+      <figure><img src="fotos/barrel.jpg" alt="Surfista dentro del tubo" loading="lazy"><figcaption data-i18n="w2">Secciones de tubo</figcaption></figure>
       <figure><img src="fotos/ridge.jpg" alt="Surfistas bajando la loma hacia el pico al atardecer" loading="lazy"><figcaption data-i18n="w3">Bajada al pico, tarde</figcaption></figure>
       <figure><img src="fotos/turn.jpg" alt="Maniobra en la pared de la ola" loading="lazy"><figcaption data-i18n="w4">Pared para maniobrar</figcaption></figure>
       <figure><img src="fotos/verde-2.jpg" alt="Surfistas caminando entre el monte verde sobre el mar" loading="lazy"><figcaption data-i18n="w5">Monte verde y agua azul</figcaption></figure>
@@ -1250,7 +1266,7 @@ const I18N = {
     eb9:'Las olas',h2j:'Por esto<br><em>se viene.</em>',
     sub9:'Derechas largas de point, beach breaks que rompen todo el año y reefs que solo entran con la marea justa. Swell del sur casi todo el verano y muy poca gente en el agua.',
     olasr:'Swell del sur<br>casi todo el año',
-    w1:'Pared limpia con swell del sur',w2:'Secciones de barril',w3:'Bajada al pico, tarde',
+    w1:'Pared limpia con swell del sur',w2:'Secciones de tubo',w3:'Bajada al pico, tarde',
     w4:'Pared para maniobrar',w5:'Monte verde y agua azul',
     pv_k:'Pura vida',pv_cta:'Preguntarle a Robert',pv_abre:'Abre',pv_donde:'Dónde',
     eb3:'Filmación',h2d:'Robert también<br><em>carga la cámara.</em>',
@@ -1261,7 +1277,7 @@ const I18N = {
     f1t:'Foto y video',f1p:'Desde el agua y desde la playa, en las sesiones del trip.',
     f2t:'Los archivos son tuyos',f2p:'Te los entrega para que los uses donde quieras.',
     f3t:'Va aparte del trip',f3p:'No entra en la tarifa de surf. Se suma al desglose cuando lo agregas.',
-    filmcaps:['Barril','Sesión filmada','Antes de entrar','Camino al pico'],
+    filmcaps:['Tubo','Sesión filmada','Antes de entrar','Camino al pico'],
     eb4:'Spots Around',h2e:'Nueve picos.<br><em>Ninguno con nombre.</em>',
     sub4:'No publicamos dónde están, a propósito: los picos buenos aguantan poca gente y se cuidan solos mientras nadie los ponga en un mapa. Robert decide a cuál vamos la mañana del día, leyendo swell, viento y marea. Algunos están a diez minutos; a otros hay que manejar un buen rato.',
     lvlkey:'Dificultad<br>1 — 4',
@@ -1309,7 +1325,7 @@ const I18N = {
     n1t:'Primera vez',n1d:'Nunca me he parado en una tabla.',
     n2t:'Principiante',n2d:'Me paro en espuma, quiero ir a la ola verde.',
     n3t:'Intermedio',n3d:'Remo solo, hago bottom turn, busco picos mejores.',
-    n4t:'Avanzado',n4d:'Surfeo reef, quiero barriles y las buenas.',
+    n4t:'Avanzado',n4d:'Surfeo reef, quiero tubos y las buenas.',
     eb6:'Quienes ya fueron',h2g:'Lo que dicen.',
     eb7:'Dudas',h2h:'Antes de reservar.',
     fin2:'Mándale a Robert tus fechas y él te dice qué está rompiendo.',
@@ -1331,7 +1347,7 @@ const I18N = {
       ['¿Y si el mar está plano o hay tormenta?','Robert te avisa con anticipación y reagendan. Él conoce la zona y sabe a dónde moverse cuando las condiciones cambian.']
     ],
     spots:[
-      ['La derecha larga','Point · clase mundial','Point derecho rápido, con secciones de barril cuando entra swell del sur. Es la joya de la zona; por eso aquí no lleva nombre.',3],
+      ['La derecha larga','Point · clase mundial','Point derecho rápido, con secciones de tubo cuando entra swell del sur. Es la joya de la zona; por eso aquí no lleva nombre.',3],
       ['El beach de siempre','Beach break','Rompe izquierda y derecha sobre arena. Funciona casi todo el año, haya swell o no.',2],
       ['La bahía de arena','Para aprender','Fondo de arena y olas suaves. Aquí empieza casi todo el que aprende.',1],
       ['Las izquierdas','Izquierdas largas','Izquierdas largas y con pared. El favorito cuando entra viento norte.',3],
@@ -2540,6 +2556,53 @@ document.querySelectorAll('.lang button').forEach(b=> b.onclick = ()=>{
 const io = new IntersectionObserver(es=> es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold:.1});
 function revealScan(){ document.querySelectorAll('.rv:not(.in)').forEach(el=> io.observe(el)); }
 
+/* Carrusel de las mini fotos de Robert: una cada 2.5 s, con crossfade.
+   Los puntos sí navegan (y reinician el conteo). Se pausa con el mouse encima
+   y cuando la pestaña no está a la vista, para no dejar un timer corriendo solo. */
+function miniCarrusel(){
+  const caja = document.getElementById('miniCar');
+  if(!caja) return;
+  const slides = [...caja.querySelectorAll('.ms-slide')];
+  const puntos = caja.querySelector('.ms-dots');
+  const prevBtn = caja.querySelector('.ms-prev');
+  const nextBtn = caja.querySelector('.ms-next');
+  if(slides.length < 2 || !puntos) return;
+
+  let i = 0, reloj = null, pausado = false;
+
+  slides.forEach((_, n) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'ms-dot'; b.setAttribute('role','tab');
+    b.setAttribute('aria-label', `Foto ${n+1} de ${slides.length}`);
+    b.innerHTML = '<i></i>';
+    b.addEventListener('click', () => { mostrar(n); arrancar(); });
+    puntos.appendChild(b);
+  });
+  const botones = [...puntos.children];
+
+  function mostrar(n){
+    i = (n + slides.length) % slides.length;
+    slides.forEach((s, k) => s.classList.toggle('is-on', k === i));
+    botones.forEach((b, k) => b.setAttribute('aria-selected', k === i ? 'true' : 'false'));
+  }
+  function arrancar(){
+    clearInterval(reloj);
+    reloj = setInterval(() => { if(!pausado) mostrar(i + 1); }, 2500);
+  }
+
+  prevBtn?.addEventListener('click', () => { mostrar(i - 1); arrancar(); });
+  nextBtn?.addEventListener('click', () => { mostrar(i + 1); arrancar(); });
+
+  caja.addEventListener('mouseenter', () => pausado = true);
+  caja.addEventListener('mouseleave', () => pausado = false);
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden) clearInterval(reloj); else arrancar();
+  });
+
+  mostrar(0);
+  arrancar();
+}
+
 /* init */
 const savedLang = localStorage.getItem('gosurf_lang');
 if(savedLang && I18N[savedLang]) LANG = savedLang;
@@ -2550,6 +2613,7 @@ else {
 }
 applyLang();
 showStep(1);
+miniCarrusel();
 
 // Se pinta primero con el respaldo y luego se refresca con lo del panel:
 // así la página nunca se ve vacía esperando la red.
