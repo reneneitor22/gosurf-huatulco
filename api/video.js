@@ -60,11 +60,18 @@ function uidValido(s) {
 const keyParte = (uid, i) => `tmp/${uid}-${i}.bin`;
 
 /** Contesta el archivo entero o la tajada que pidió el navegador. */
-function servir(req, res, bytes, contentType, cacheable) {
+function servir(req, res, bytes, contentType, { versionada, etag }) {
   res.setHeader('Content-Type', contentType);
   res.setHeader('Accept-Ranges', 'bytes');
-  // la URL lleva `v`: si cambia el video cambia la URL, así que se cachea para siempre
-  res.setHeader('Cache-Control', cacheable ? 'public, max-age=31536000, immutable' : 'no-store');
+  if (etag) res.setHeader('ETag', etag);
+  /* Con `v` en la URL, cambiar el video cambia la URL: se cachea para siempre.
+     Sin `v` (la que va escrita en el HTML, para que el navegador empiece a bajar
+     el clip sin esperar a /api/public) se cachea un minuto y después se revalida
+     con el ETag: el 304 no vuelve a bajar los megas y lo que suba Robert entra
+     al minuto siguiente. */
+  res.setHeader('Cache-Control', versionada
+    ? 'public, max-age=31536000, immutable'
+    : 'public, max-age=60, must-revalidate');
 
   const rango = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range || ''));
   if (!rango) {
@@ -117,6 +124,17 @@ export default async function handler(req, res) {
       const poster = url.searchParams.get('poster') === '1';
       if (poster && !meta.poster) return json(res, 404, { error: 'Ese video no tiene portada.' });
 
+      const versionada = url.searchParams.has('v');
+      const etag = `"${slot}-${meta.v || 0}${poster ? '-p' : ''}"`;
+      if (req.headers['if-none-match'] === etag) {
+        res.statusCode = 304;
+        res.setHeader('ETag', etag);
+        res.setHeader('Cache-Control', versionada
+          ? 'public, max-age=31536000, immutable'
+          : 'public, max-age=60, must-revalidate');
+        return res.end();
+      }
+
       const archivo = await leerBytes(poster ? meta.poster : meta.key, poster ? 'image/jpeg' : meta.tipo);
       if (!archivo) return json(res, 404, { error: 'No se encontró el archivo.' });
 
@@ -125,9 +143,10 @@ export default async function handler(req, res) {
         res.setHeader('Content-Type', archivo.contentType);
         res.setHeader('Content-Length', archivo.bytes.length);
         res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('ETag', etag);
         return res.end();
       }
-      return servir(req, res, archivo.bytes, archivo.contentType, true);
+      return servir(req, res, archivo.bytes, archivo.contentType, { versionada, etag });
     }
 
     if (req.method !== 'POST') return json(res, 405, { error: 'Método no permitido' });

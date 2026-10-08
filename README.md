@@ -126,7 +126,6 @@ nombres:
 | `band-barrel.jpg`, `film-barrel.jpg`, `film-beach.jpg` | **temporales de Unsplash** (banda + 2 del grid) — cambiar por las de Robert en alta |
 | `ridge.jpg` | CTA final |
 | `logo-cactus.jpg` | og:image |
-| resto | hover de spots (`CONFIG.spotImgs`) |
 
 ### Cambiarlas desde el panel
 
@@ -208,17 +207,11 @@ pantalla completa** (`costline.jpg`, cambiable desde el panel) con el texto enci
 **cuatro puntos**, nada más. Lo "místico" no es un filtro: es una imagen grande, dos
 capas de niebla y una bruma que sube y baja lentísimo, apagada con `prefers-reduced-motion`.
 
-Debajo de los spots va **Fuera del agua**: masaje, hospedaje, renta de carro, pesca y
+Debajo va **Fuera del agua**: masaje, hospedaje, renta de carro, pesca y
 clases de yoga. **Ninguno lleva precio** — cada tarjeta abre el WhatsApp de Robert con el
 mensaje ya escrito diciendo por cuál pregunta. La lista vive en `extras` de `lib/db.js`,
 se edita entera desde el panel (nombre, descripción y si se muestra) y va en los cuatro
 idiomas.
-
-## Spots Around
-
-Los nueve picos ya **no llevan nombre ni ubicación**, a propósito, y la página lo explica:
-los picos buenos aguantan poca gente mientras nadie los ponga en un mapa. Quedan tipo de
-ola, carácter y dificultad. Fue petición de Robert.
 
 ## Pura Vida Surf & Beach Club
 

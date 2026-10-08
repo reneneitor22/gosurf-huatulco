@@ -175,8 +175,18 @@ header.nav .lang button.on span{color:#3D4941}
 .hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden;background:var(--sage-d)}
 .hero-bg img{width:100%;height:112%;object-fit:cover;will-change:transform}
 /* el clip de portada se monta encima de la foto: si el telefono no lo deja
-   reproducir (modo de bajo consumo), abajo sigue estando la foto de siempre */
-.hero-bg video{position:absolute;inset:0;width:100%;height:112%;object-fit:cover;will-change:transform}
+   reproducir (modo de bajo consumo), abajo sigue estando la foto de siempre.
+   Nace invisible y se funde cuando YA está corriendo (.on): asi no hay cuadro
+   negro ni corte seco mientras baja, solo la foto y despues el video */
+.hero-bg video{position:absolute;inset:0;width:100%;height:112%;object-fit:cover;will-change:transform;
+  opacity:0;transition:opacity .55s var(--ease)}
+.hero-bg video.on{opacity:1}
+/* El clip está grabado vertical (1080x1584). En el telefono llena solo; en una
+   pantalla ancha `cover` recorta a lo alto y de centro se queda con el mar y el
+   cerro, sin el atardecer. Subiendo el encuadre al 22% entra el horizonte con
+   la ola rompiendo, que es la toma. */
+@media (min-aspect-ratio:1/1){ .hero-bg video{object-position:50% 22%} }
+@media (prefers-reduced-motion:reduce){ .hero-bg video{transition:none} }
 .hero-bg::after{
   content:"";position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(43,52,45,.52) 0%,rgba(43,52,45,.3) 34%,rgba(43,52,45,.56) 70%,rgba(61,73,65,.88) 100%);
@@ -193,6 +203,19 @@ h1.hero-t span{display:inline-block}
 .hero-sub{max-width:560px;margin:22px auto 0;font-size:15.5px;font-weight:300;color:rgba(251,247,239,.86);opacity:0;animation:fade .9s var(--ease) .6s forwards}
 .hero-cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:30px;opacity:0;animation:fade .9s var(--ease) .75s forwards}
 @keyframes fade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+/* Las letras del hero esperan a que el video ya esté corriendo (un segundo
+   después, lo suelta el JS con .letras): primero entra la imagen en movimiento
+   y encima aparece el lockup. Quedan pausadas, no borradas, para que se animen
+   igual que siempre cuando les toque.
+   La espera la PRENDE un script del <head> (`html.espera-hero`), no esta hoja:
+   si el JS truena o no corre, nunca se pausan y salen a los .15 s de siempre.
+   Y si el video no arranca —sin clip, bajo consumo, reduced-motion— el JS
+   suelta .letras igual a los 3 s. */
+html.espera-hero .hero-lock, html.espera-hero h1.hero-t, html.espera-hero .hero-sub,
+html.espera-hero .hero-cta, html.espera-hero .hero-meta{animation-play-state:paused}
+html.espera-hero .hero.letras .hero-lock, html.espera-hero .hero.letras h1.hero-t,
+html.espera-hero .hero.letras .hero-sub, html.espera-hero .hero.letras .hero-cta,
+html.espera-hero .hero.letras .hero-meta{animation-play-state:running}
 .hero-meta{
   display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:clamp(26px,4.5vh,44px);padding-top:22px;
   border-top:1px solid rgba(251,247,239,.24);opacity:0;animation:fade .9s var(--ease) .9s forwards;text-align:left;
@@ -265,6 +288,7 @@ h2 em{font-style:normal;color:var(--acc)}
 .ms-slide{position:absolute;inset:0;opacity:0;transition:opacity .7s ease}
 .ms-slide.is-on{opacity:1}
 .mini-shots img{width:100%;height:100%;object-fit:cover}
+.ms-slide.alta img{object-position:50% 30%}
 .ms-arrow{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:50%;background:rgba(20,20,16,.38);color:#fff;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:2}
 .ms-arrow:hover{background:rgba(20,20,16,.6)}
 .ms-prev{left:10px}
@@ -327,32 +351,6 @@ h2 em{font-style:normal;color:var(--acc)}
 .film-note{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:44px;padding-top:30px;border-top:1px solid var(--line)}
 .film-note b{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--acc);margin-bottom:10px}
 .film-note p{font-size:14px;font-weight:300;color:var(--fg-2)}
-
-/* ---------- LISTA DE SPOTS ---------- */
-.big-list{border-top:1px solid var(--line)}
-.row{
-  position:relative;display:grid;align-items:center;gap:10px clamp(16px,3vw,44px);
-  padding:clamp(20px,2.4vw,30px) 0;border-bottom:1px solid var(--line);
-  transition:padding-left .45s var(--ease);
-}
-.row:hover{padding-left:18px}
-.row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:0;background:var(--sage);transition:width .45s var(--ease)}
-.row:hover::before{width:2px}
-.row .no{font-family:var(--mono);font-size:11px;color:var(--fg-3);letter-spacing:.1em}
-.row h4{font-family:var(--disp);font-weight:300;text-transform:uppercase;font-size:clamp(21px,3vw,40px);line-height:1.08;letter-spacing:.05em;transition:color .35s}
-.row:hover h4{color:var(--acc)}
-.row .desc{font-size:14px;font-weight:300;color:var(--fg-2);max-width:440px}
-.spot-row{grid-template-columns:44px 1.1fr 1.2fr 120px}
-.spot-row h4 small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--acc);text-transform:uppercase;margin-top:9px;font-weight:500}
-.lvl{display:flex;gap:4px;justify-content:flex-end}
-.lvl i{width:20px;height:2px;background:var(--line-2);display:block}
-.lvl i.on{background:var(--sage)}
-
-#hoverImg{
-  position:fixed;top:0;left:0;width:290px;height:200px;object-fit:cover;z-index:250;pointer-events:none;
-  opacity:0;transform:translate(-50%,-50%) scale(.94);transition:opacity .3s var(--ease),transform .45s var(--ease);
-}
-#hoverImg.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 
 /* ---------- RESERVA ---------- */
 .book-shell{display:grid;grid-template-columns:1.4fr .8fr;gap:2px;border:1px solid var(--line)}
@@ -717,11 +715,7 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
   .brand{flex-shrink:1;min-width:0}
   .scroll-hint{display:none}
   .inc-list{grid-template-columns:1fr}
-  .spot-row{grid-template-columns:30px 1fr;gap:8px 14px}
-  .spot-row .desc,.spot-row .lvl{grid-column:2}
-  .lvl{justify-content:flex-start}
   .row2{grid-template-columns:1fr}
-  #hoverImg{display:none}
   .film-note{grid-template-columns:1fr;gap:24px}
   .green{grid-template-columns:1fr}
   .green .tall{aspect-ratio:1/1}
@@ -735,10 +729,15 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
   .brand i{display:none}
 }
 </style>
+<script>
+  /* Prende la espera de las letras del hero ANTES de pintar: si este script no
+     corre, el CSS de pausa no aplica y la portada se comporta como siempre.
+     Con reduced-motion ni se prende: nadie se queda mirando una portada muda. */
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)
+    document.documentElement.classList.add('espera-hero');
+</script>
 </head>
 <body>
-
-<img id="hoverImg" alt="">
 
 <!-- ================= NAV ================= -->
 <header class="nav" id="nav">
@@ -753,7 +752,6 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
     <a href="#robert" data-i18n="nav1">Robert</a>
     <a href="#trips" data-i18n="nav2">Surf Trips</a>
     <a href="#filmer" data-i18n="nav3">Filmación</a>
-    <a href="#spots" data-i18n="nav4">Spots</a>
     <a href="#reserva" data-i18n="nav5">Reservar</a>
   </nav>
   <div class="nav-right">
@@ -767,6 +765,23 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
 <section class="hero" id="top">
   <div class="hero-bg">
     <img id="heroImg" src="fotos/hero.jpg" alt="Punto de surf en la costa de Oaxaca al amanecer">
+    <!-- El clip de portada va escrito aquí, no lo monta el JS: esperar a
+         /api/public (que es no-store) le regalaba al video casi un segundo de
+         ventaja a la foto, y en el teléfono se veía la foto vieja varios
+         segundos antes de arrancar el video.
+
+         Y va como ARCHIVO ESTÁTICO del repo, no por /api/video: lo sirve la CDN
+         con rangos nativos, en una sola petición y sin funciones. Por la función
+         cada visita eran cuatro idas y vueltas —el navegador aborta tres— y en
+         CADA una la función volvía a bajar el clip entero del Blob: 2.7 s hasta
+         el primer cuadro con un clip de 2.4 MB. Por eso este puede pesar 6 MB y
+         aun así arrancar antes: es 1080x1584 nativo (el original es HDR/Dolby
+         Vision de iPhone, va tonemapeado a bt709 o se ve deslavado).
+
+         Si Robert sube uno desde el panel, ese gana: lo cambia aplicarVideos().
+         Sin `poster` a propósito: pesaba 244 KB que le quitaban ancho de banda
+         al propio clip, y debajo ya está la foto. -->
+    <video id="heroVid" src="video/hero.mp4" autoplay muted loop playsinline preload="auto"></video>
   </div>
   <div class="hero-in">
     <span class="lock hero-lock">
@@ -832,6 +847,8 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
             <div class="ms-slide is-on"><img src="fotos/crew-playa.jpg" alt="Robert con un grupo de surfistas en la playa" loading="lazy"></div>
             <div class="ms-slide"><img src="fotos/cooperativa.jpg" alt="La Cooperativa de Surf de Huatulco en la playa" loading="lazy"></div>
             <div class="ms-slide"><img src="fotos/lifeguard.jpg" alt="Robert con el equipo de salvavidas" loading="lazy"></div>
+            <!-- vertical: se encuadra más arriba para no perder el atardecer -->
+            <div class="ms-slide alta"><img src="fotos/crew-lancha.jpg" alt="Regreso en lancha al atardecer después de una sesión" loading="lazy"></div>
             <button type="button" class="ms-arrow ms-prev" aria-label="Foto anterior">&#8249;</button>
             <button type="button" class="ms-arrow ms-next" aria-label="Foto siguiente">&#8250;</button>
           </div>
@@ -1004,21 +1021,6 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
       <div class="r mono" data-i18n="exr">Sin precio en línea<br>se ve por WhatsApp</div>
     </div>
     <div class="extras rv" id="extrasGrid"></div>
-  </div>
-</section>
-
-<!-- ================= SPOTS ================= -->
-<section class="sec cream" id="spots">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="l">
-        <span class="kicker" data-i18n="eb4">Spots Around</span>
-        <h2 data-i18n="h2e">Nueve picos.<br><em>Ninguno con nombre.</em></h2>
-        <p data-i18n="sub4">No publicamos dónde están, a propósito: los picos buenos aguantan poca gente y se cuidan solos mientras nadie los ponga en un mapa. Robert decide a cuál vamos la mañana del día, leyendo swell, viento y marea. Algunos están a diez minutos; a otros hay que manejar un buen rato.</p>
-      </div>
-      <div class="r mono" data-i18n="lvlkey">Dificultad<br>1 — 4</div>
-    </div>
-    <div class="big-list rv" id="spotList"></div>
   </div>
 </section>
 
@@ -1215,7 +1217,6 @@ footer{padding-block:clamp(48px,7vh,76px) 28px}
         <a href="#robert" data-i18n="nav1">Robert</a>
         <a href="#trips" data-i18n="nav2">Surf Trips</a>
         <a href="#filmer" data-i18n="nav3">Filmación</a>
-        <a href="#spots" data-i18n="nav4">Spots</a>
         <a href="#reserva" data-i18n="nav5">Reservar</a>
       </div>
       <div class="foot-links">
@@ -1246,9 +1247,7 @@ const CONFIG = {
   // Fotos: el repo trae las originales y Robert puede reemplazar
   // cualquiera desde /admin (llegan por /api/public como /api/foto?slot=...).
   // film-*.jpg son temporales de banco (Unsplash); turn/board son de Robert
-  gallery: ['fotos/film-barrel.jpg','fotos/turn.jpg','fotos/board.jpg','fotos/film-beach.jpg'],
-  spotImgs: ['fotos/hero.jpg','fotos/barrel.jpg','fotos/ridge.jpg','fotos/surf-rocks.jpg','fotos/turn.jpg',
-             'fotos/barrel2.jpg','fotos/surf-rocks2.jpg','fotos/logo-cactus.jpg','fotos/board.jpg']
+  gallery: ['fotos/film-barrel.jpg','fotos/turn.jpg','fotos/board.jpg','fotos/film-beach.jpg']
 };
 
 /* ============================================================
@@ -1342,7 +1341,7 @@ const ICONS = {
 const I18N = {
   es:{
     brandsub:'Experience Oaxaca, Mexico',
-    nav1:'Robert',nav2:'Surf Trips',nav3:'Filmación',nav4:'Spots Around',nav5:'Reservar',navcta:'Reservar',
+    nav1:'Robert',nav2:'Surf Trips',nav3:'Filmación',nav5:'Reservar',navcta:'Reservar',
     h1:'Surf · Eat · Sleep · Repeat',
     herosub:'Las mejores olas locales de la costa de Oaxaca, con un guía certificado que se encarga de convertir tu surftrip en una experiencia de por vida.',
     cta1:'Reservar mi trip',cta2:'Ver qué incluye',
@@ -1404,9 +1403,6 @@ const I18N = {
     f2t:'Los archivos son tuyos',f2p:'Te los entrega para que los uses donde quieras.',
     f3t:'Va aparte del trip',f3p:'No entra en la tarifa de surf. Se suma al desglose cuando lo agregas.',
     filmcaps:['Tubo','Sesión filmada','Antes de entrar','Camino al pico'],
-    eb4:'Spots Around',h2e:'Nueve picos.<br><em>Ninguno con nombre.</em>',
-    sub4:'No publicamos dónde están, a propósito: los picos buenos aguantan poca gente y se cuidan solos mientras nadie los ponga en un mapa. Robert decide a cuál vamos la mañana del día, leyendo swell, viento y marea. Algunos están a diez minutos; a otros hay que manejar un buen rato.',
-    lvlkey:'Dificultad<br>1 — 4',
     eb5:'Reserva',h2f:'Arma tu trip <em>a tu medida.</em>',
     sub5:'Escoge qué servicios quieres, mira el desglose y aparta tu día con el anticipo. Lo que no quede claro, se cierra por WhatsApp con Robert.',
     nopay:'Apartas con<br>el <b id="pctHead">30</b>%',
@@ -1473,22 +1469,11 @@ const I18N = {
       ['¿Traigo mi tabla?','Sí, lo ideal es que traigas la tuya. Si no tienes, pregúntale a Robert al reservar qué opciones hay.'],
       ['¿Y si el mar está plano o hay tormenta?','Robert te avisa con anticipación y reagendan. Él conoce la zona y sabe a dónde moverse cuando las condiciones cambian.']
     ],
-    spots:[
-      ['La derecha larga','Point · clase mundial','Point derecho rápido, con secciones de tubo cuando entra swell del sur. Es la joya de la zona; por eso aquí no lleva nombre.',3],
-      ['El beach de siempre','Beach break','Rompe izquierda y derecha sobre arena. Funciona casi todo el año, haya swell o no.',2],
-      ['La bahía de arena','Para aprender','Fondo de arena y olas suaves. Aquí empieza casi todo el que aprende.',1],
-      ['Las izquierdas','Izquierdas largas','Izquierdas largas y con pared. El favorito cuando entra viento norte.',3],
-      ['El beach pesado','Beach potente','Beach break potente, para quien ya rema fuerte. Cuidado con la corriente.',3],
-      ['La pesada','Solo avanzados','La ola seria de la costa. Nada más se va con nivel y con guía.',4],
-      ['El point escondido','Point de arena','Point de arena poco surfeado. Se llega por terracería y casi nunca hay nadie.',2],
-      ['La bahía protegida','Días chicos','Bahía protegida, ideal para longboard y para los días sin fuerza.',1],
-      ['El reef corto','Reef','Reef derecho corto pero intenso. Solo entra con la marea correcta.',3]
-    ],
     ticker:['Surf','Eat','Sleep','Repeat','Experience Oaxaca, Mexico','Guía local certificado','Transportación incluida','Sombra y comida']
   },
   en:{
     brandsub:'Experience Oaxaca, Mexico',
-    nav1:'Robert',nav2:'Surf Trips',nav3:'Filming',nav4:'Spots Around',nav5:'Book',navcta:'Book now',
+    nav1:'Robert',nav2:'Surf Trips',nav3:'Filming',nav5:'Book',navcta:'Book now',
     h1:'Surf · Eat · Sleep · Repeat',
     herosub:'The best local waves around the area with a certified guide who is in charge of turning your surftrip into a lifetime experience.',
     cta1:'Book my trip',cta2:'See what is included',
@@ -1550,9 +1535,6 @@ const I18N = {
     f2t:'The files are yours',f2p:'He hands them over for you to use wherever you want.',
     f3t:'Separate from the trip',f3p:'Not part of the surf rate. It is added to the breakdown when you tick it.',
     filmcaps:['Barrel','Filmed session','Before paddling out','Walking in'],
-    eb4:'Spots Around',h2e:'Nine breaks.<br><em>None of them named.</em>',
-    sub4:'We do not publish where they are, on purpose: the good ones only hold so many people, and they keep themselves that way as long as nobody puts them on a map. Robert calls the spot the morning of, reading swell, wind and tide. Some are ten minutes away; others take a good drive.',
-    lvlkey:'Difficulty<br>1 — 4',
     eb5:'Booking',h2f:'Build the trip <em>you actually want.</em>',
     sub5:'Pick the services you want, see the breakdown, and hold your day with the deposit. Anything unclear gets sorted with Robert on WhatsApp.',
     nopay:'Hold it with<br><b id="pctHead">30</b>%',
@@ -1619,23 +1601,12 @@ const I18N = {
       ['Should I bring my own board?','Yes, ideally bring your own. If you do not have one, ask Robert when booking about the options.'],
       ['What if the ocean is flat or there is a storm?','Robert lets you know ahead of time and you reschedule. He knows the area and where to move when conditions change.']
     ],
-    spots:[
-      ['The long right','Point · world class','Fast right hand point with barrel sections when the south swell fills in. It is the gem of the area — that is why it has no name here.',3],
-      ['The everyday beach','Beach break','Lefts and rights over sand. Works almost all year, swell or no swell.',2],
-      ['The sand bay','Beginner friendly','Sand bottom, soft waves. Where almost everyone learns.',1],
-      ['The lefts','Long lefts','Long walling lefts. The go-to when north wind shows up.',3],
-      ['The heavy beach','Powerful beach','Punchy beach break for surfers who paddle strong. Mind the rip.',3],
-      ['The serious one','Advanced only','The heavy wave of this coast. You only go with the level and a guide.',4],
-      ['The hidden point','Sand point','Rarely surfed sand point down a dirt road. Almost never anyone out.',2],
-      ['The sheltered bay','Small days','Protected bay, ideal for longboarding and days without power.',1],
-      ['The short reef','Reef','Short but intense right reef. Only on the right tide.',3]
-    ],
     ticker:['Surf','Eat','Sleep','Repeat','Experience Oaxaca, Mexico','Certified local guide','Transportation included','Shade and food']
   },
 
   fr:{
     brandsub:'Experience Oaxaca, Mexico',
-    nav1:'Robert',nav2:'Surf Trips',nav3:'Vidéo',nav4:'Spots Around',nav5:'Réserver',navcta:'Réserver',
+    nav1:'Robert',nav2:'Surf Trips',nav3:'Vidéo',nav5:'Réserver',navcta:'Réserver',
     h1:'Surf · Eat · Sleep · Repeat',
     herosub:'Les meilleures vagues locales de la côte d’Oaxaca, avec un guide certifié qui transforme ton surftrip en une expérience inoubliable.',
     cta1:'Réserver mon trip',cta2:'Voir ce qui est inclus',
@@ -1697,9 +1668,6 @@ const I18N = {
     f2t:'Les fichiers sont à toi',f2p:'Il te les remet pour que tu en fasses ce que tu veux.',
     f3t:'En plus du trip',f3p:'Pas compris dans le tarif de surf. Ça s’ajoute au détail quand tu le coches.',
     filmcaps:['Tube','Session filmée','Avant de partir à l’eau','Sur le chemin du spot'],
-    eb4:'Spots Around',h2e:'Neuf spots.<br><em>Aucun nommé.</em>',
-    sub4:'On ne publie pas où ils sont, et c’est volontaire : les bons spots ne supportent pas la foule, et ils se protègent tout seuls tant que personne ne les met sur une carte. Robert choisit le matin même, en lisant la houle, le vent et la marée. Certains sont à dix minutes ; pour d’autres il faut rouler un bon moment.',
-    lvlkey:'Difficulté<br>1 — 4',
     eb5:'Réservation',h2f:'Compose le trip <em>qui te ressemble.</em>',
     sub5:'Choisis tes services, regarde le détail et bloque ta journée avec l’acompte. Le reste se règle avec Robert sur WhatsApp.',
     nopay:'Tu bloques avec<br>les <b id="pctHead">30</b>%',
@@ -1766,23 +1734,12 @@ const I18N = {
       ['J’apporte ma planche ?','Oui, l’idéal c’est d’apporter la tienne. Sinon, demande à Robert en réservant quelles options existent.'],
       ['Et si la mer est plate ou s’il y a une tempête ?','Robert te prévient à l’avance et vous reprogrammez. Il connaît la zone et sait où se déplacer quand les conditions changent.']
     ],
-    spots:[
-      ['La longue droite','Point break · classe mondiale','Point break de droite rapide, avec des sections de tube quand la houle de sud rentre. C’est le joyau du coin ; c’est pour ça qu’il n’a pas de nom ici.',3],
-      ['Le beach de tous les jours','Beach break','Casse à gauche et à droite sur le sable. Marche presque toute l’année, avec ou sans houle.',2],
-      ['La baie de sable','Pour apprendre','Fond de sable et vagues douces. C’est là que presque tout le monde débute.',1],
-      ['Les gauches','Longues gauches','Longues gauches bien murées. Le favori quand le vent de nord se lève.',3],
-      ['Le beach costaud','Beach puissant','Beach break puissant, pour ceux qui rament fort. Attention au courant.',3],
-      ['Le sérieux','Confirmés seulement','La vague sérieuse de cette côte. On n’y va qu’avec le niveau et un guide.',4],
-      ['Le point caché','Point de sable','Point break de sable peu surfé. On y accède par une piste et il n’y a presque jamais personne.',2],
-      ['La baie abritée','Petits jours','Baie protégée, idéale pour le longboard et les jours sans puissance.',1],
-      ['Le reef court','Reef','Reef de droite court mais intense. Seulement à la bonne marée.',3]
-    ],
     ticker:['Surf','Eat','Sleep','Repeat','Experience Oaxaca, Mexico','Guide local certifié','Transport compris','Ombre et repas']
   },
 
   pt:{
     brandsub:'Experience Oaxaca, Mexico',
-    nav1:'Robert',nav2:'Surf Trips',nav3:'Filmagem',nav4:'Spots Around',nav5:'Reservar',navcta:'Reservar',
+    nav1:'Robert',nav2:'Surf Trips',nav3:'Filmagem',nav5:'Reservar',navcta:'Reservar',
     h1:'Surf · Eat · Sleep · Repeat',
     herosub:'As melhores ondas locais da costa de Oaxaca, com um guia certificado que transforma o teu surftrip numa experiência para a vida toda.',
     cta1:'Reservar meu trip',cta2:'Ver o que inclui',
@@ -1844,9 +1801,6 @@ const I18N = {
     f2t:'Os arquivos são seus',f2p:'Ele te entrega tudo para usar onde quiser.',
     f3t:'Vai à parte do trip',f3p:'Não entra na tarifa de surf. Entra no detalhamento quando você marca.',
     filmcaps:['Tubo','Sessão filmada','Antes de cair na água','A caminho do pico'],
-    eb4:'Spots Around',h2e:'Nove picos.<br><em>Nenhum com nome.</em>',
-    sub4:'Não publicamos onde ficam, de propósito: pico bom não aguenta muita gente, e se cuida sozinho enquanto ninguém o coloca num mapa. O Robert decide para qual vamos na manhã do dia, lendo swell, vento e maré. Alguns ficam a dez minutos; para outros tem que dirigir um bom tempo.',
-    lvlkey:'Dificuldade<br>1 — 4',
     eb5:'Reserva',h2f:'Monte o trip <em>do seu jeito.</em>',
     sub5:'Escolha os serviços, veja o detalhamento e garanta o seu dia com o sinal. O que ficar em aberto, se resolve com o Robert no WhatsApp.',
     nopay:'Garante com<br>os <b id="pctHead">30</b>%',
@@ -1913,17 +1867,6 @@ const I18N = {
       ['Levo minha prancha?','Sim, o ideal é levar a sua. Se não tiver, pergunte ao Robert na reserva quais são as opções.'],
       ['E se o mar estiver flat ou tiver tempestade?','O Robert avisa com antecedência e vocês remarcam. Ele conhece a região e sabe para onde ir quando as condições mudam.']
     ],
-    spots:[
-      ['A direita longa','Point · classe mundial','Point de direita rápido, com seções de tubo quando entra swell de sul. É a joia da região; por isso aqui não tem nome.',3],
-      ['O beach de sempre','Beach break','Quebra para a esquerda e para a direita na areia. Funciona quase o ano todo, com ou sem swell.',2],
-      ['A baía de areia','Para aprender','Fundo de areia e ondas suaves. É aqui que quase todo mundo começa.',1],
-      ['As esquerdas','Esquerdas longas','Esquerdas longas e com parede. A favorita quando entra vento norte.',3],
-      ['O beach pesado','Beach potente','Beach break potente, para quem já rema forte. Cuidado com a correnteza.',3],
-      ['A pesada','Só avançados','A onda séria desta costa. Só se vai com nível e com guia.',4],
-      ['O point escondido','Point de areia','Point de areia pouco surfado. Chega-se por estrada de terra e quase nunca tem ninguém.',2],
-      ['A baía protegida','Dias pequenos','Baía protegida, ideal para longboard e para os dias sem força.',1],
-      ['O reef curto','Reef','Reef de direita curto mas intenso. Só com a maré certa.',3]
-    ],
     ticker:['Surf','Eat','Sleep','Repeat','Experience Oaxaca, Mexico','Guia local certificado','Transporte incluído','Sombra e comida']
   }
 };
@@ -1959,7 +1902,40 @@ const TOTAL_STEPS = 5;
    ============================================================ */
 const nav = document.getElementById('nav'), links = document.getElementById('links'), burger = document.getElementById('burger');
 const heroImg = document.getElementById('heroImg');
-let heroVid = null;   // lo pone aplicarVideos si Robert subió clip de portada
+/* Ya viene en el HTML, apuntando al estático del repo (ver el comentario del
+   hero). Si el archivo no se puede leer, el `error` lo quita y queda la foto. */
+let heroVid = document.getElementById('heroVid');
+
+/* Las letras entran un segundo DESPUÉS de que el video ya está corriendo.
+   El respaldo de 3 s no es un adorno: sin él, un teléfono que no deja arrancar
+   el video (bajo consumo) o una conexión mala dejaban la portada sin texto. */
+const heroSec = document.getElementById('top');
+let letrasFuera = false;
+function soltarLetras(){
+  if(letrasFuera) return;
+  letrasFuera = true;
+  heroSec.classList.add('letras');
+}
+setTimeout(soltarLetras, 3000);
+
+if(heroVid){
+  const v = heroVid;
+  v.addEventListener('error', ()=>{ v.remove(); heroVid = null; soltarLetras(); });
+  // solo se ve cuando ya hay imagen en movimiento: nada de cuadro negro
+  v.addEventListener('playing', ()=>{
+    v.classList.add('on');
+    setTimeout(soltarLetras, 1000);
+  }, { once:false });
+  /* Que `play()` truene NO es motivo para quitarlo: el navegador rechaza el
+     arranque cuando la pestaña está en segundo plano o el teléfono está en
+     bajo consumo, y en cuanto vuelve al frente arranca solo. Quitarlo ahí
+     dejaba la portada sin video en el primer intento. */
+  const arrancar = ()=> v.play().catch(()=>{});
+  arrancar();
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) arrancar(); });
+  addEventListener('pageshow', arrancar);
+  addEventListener('touchstart', arrancar, { once:true, passive:true });
+}
 addEventListener('scroll', ()=>{
   const y = scrollY;
   nav.classList.toggle('stuck', y > 40);
@@ -1984,19 +1960,6 @@ addEventListener('scroll', ()=>{
 burger.onclick = ()=>{ burger.classList.toggle('on'); links.classList.toggle('open'); document.body.classList.toggle('locked'); };
 links.querySelectorAll('a').forEach(a=> a.onclick = ()=>{ burger.classList.remove('on'); links.classList.remove('open'); document.body.classList.remove('locked'); });
 document.getElementById('yr').textContent = new Date().getFullYear();
-
-/* preview flotante en hover de spots */
-const hoverImg = document.getElementById('hoverImg');
-let hoverOn = false;
-function bindHover(el, src){
-  el.addEventListener('mouseenter', ()=>{ hoverImg.src = src; hoverImg.classList.add('on'); hoverOn = true; });
-  el.addEventListener('mouseleave', ()=>{ hoverImg.classList.remove('on'); hoverOn = false; });
-}
-addEventListener('mousemove', e=>{
-  if(!hoverOn) return;
-  hoverImg.style.left = e.clientX + 'px';
-  hoverImg.style.top  = e.clientY + 'px';
-}, {passive:true});
 
 /* ============================================================
    Render
@@ -2153,17 +2116,6 @@ function renderBoat(){
     : `<span class="lbl">${t('boat_lbl')}</span>
        <span class="n">$${fmtN(desde)}<small>MXN</small></span>
        <a href="#reserva" class="btn btn-light">${t('pricecta')}</a>`;
-}
-
-function renderSpots(){
-  document.getElementById('spotList').innerHTML = t('spots').map((s,i)=>`
-    <div class="row spot-row" data-img="${CONFIG.spotImgs[i]}">
-      <span class="no">${String(i+1).padStart(2,'0')}</span>
-      <h4>${s[0]}<small>${s[1]}</small></h4>
-      <p class="desc">${s[2]}</p>
-      <span class="lvl">${[1,2,3,4].map(n=>`<i class="${n<=s[3]?'on':''}"></i>`).join('')}</span>
-    </div>`).join('');
-  document.querySelectorAll('#spotList .row').forEach(r=> bindHover(r, r.dataset.img));
 }
 
 function renderQuotes(){
@@ -2769,31 +2721,11 @@ async function cargarConfig(){
 function aplicarVideos(mapa){
   VIDS = mapa || {};
 
-  const clip = VIDS.hero;
-  const fondo = document.querySelector('.hero-bg');
-  if(clip && fondo && !heroVid){
-    const v = document.createElement('video');
-    v.src = clip.src;
-    if(clip.poster) v.poster = clip.poster;
-    v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
-    v.setAttribute('playsinline','');       // iOS viejo solo entiende el atributo
-    v.setAttribute('muted','');
-    v.preload = 'auto';
-    // si el archivo no se puede leer, se quita y abajo sigue la foto: más vale
-    // portada fija que cuadro negro
-    v.addEventListener('error', ()=>{ v.remove(); heroVid = null; });
-    fondo.appendChild(v);
-    heroVid = v;
-
-    /* Que `play()` truene NO es motivo para quitarlo: el navegador rechaza el
-       arranque cuando la pestaña está en segundo plano o el teléfono está en
-       bajo consumo, y en cuanto vuelve al frente arranca solo. Quitarlo ahí
-       dejaba la portada sin video en el primer intento. */
-    const arrancar = ()=> v.play().catch(()=>{});
-    arrancar();
-    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) arrancar(); });
-    addEventListener('pageshow', arrancar);
-    addEventListener('touchstart', arrancar, { once:true, passive:true });
+  /* El de portada ya viene en el HTML (el estático del repo) y ya va corriendo.
+     Solo se cambia si Robert subió uno desde el panel: ese manda. */
+  if(heroVid && VIDS.hero && VIDS.hero.src){
+    heroVid.src = VIDS.hero.src;
+    heroVid.play().catch(()=>{});
   }
 
   renderFilm();   // la galería de filmación se repinta ya con los clips
@@ -2827,7 +2759,6 @@ function aplicarFotos(mapa){
   });
   document.querySelectorAll('[data-img]').forEach(el=>{ el.dataset.img = nueva(el.dataset.img); });
   CONFIG.gallery  = CONFIG.gallery.map(nueva);
-  CONFIG.spotImgs = CONFIG.spotImgs.map(nueva);
 }
 
 /* Días ya apartados. Si falla, el calendario se ve libre pero el servidor
@@ -2942,7 +2873,7 @@ function applyLang(){
   if(h1 && hTit) h1.textContent = hTit;
   if(sub && hSub) sub.textContent = hSub;
 
-  renderTicker(); renderIncludes(); renderPrices(); renderFilm(); renderSpots(); renderQuotes(); renderFaq();
+  renderTicker(); renderIncludes(); renderPrices(); renderFilm(); renderQuotes(); renderFaq();
   renderMyst(); renderExtras(); renderBoat();
   renderPuraVida(); renderOptions(); renderCal(); checkTaken(); updateSummary();
   refreshWaLinks(); revealScan();
